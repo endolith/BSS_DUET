@@ -69,12 +69,22 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
 def twoDsmooth(mat, ker):
     """
     Smoothening for better identification of the peaks in a graph.
+
     Could have used Gaussian Kernels to do the same but it seemed
     better visual effects were given when this algorithm was followed
-    ( Again, based on original CASA495) MAT is the 2D matrix to be
-    smoothed. KER is either\n
-    (1) a scalar\n
-    (2) a matrix which is used as the averaging kernel.\n
+    (Again, based on original CASA495).
+
+    Parameters
+    ----------
+    mat : ndarray
+        The 2D matrix to be smoothed.
+    ker : int or ndarray
+        Either a scalar or a matrix which is used as the averaging kernel.
+
+    Returns
+    -------
+    mat : ndarray
+        The smoothed matrix.
     """
     try:
         len(ker)
@@ -98,46 +108,47 @@ def twoDsmooth(mat, ker):
 
 
 class Duet(object):
-    """computes the Degenerate Unmixxing Estimation Technique (DUET).
+    """
+    Computes the Degenerate Unmixing Estimation Technique (DUET).
 
-    This class computes the the Degenerate Unmixxing Estimation Technique
-    of an audio signal. It supports a microphone pair inputs. (more contents)
+    This class computes the the Degenerate Unmixing Estimation Technique
+    of an audio signal. It supports a microphone pair inputs.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     x : ndarray
-        The input audio signal with at least two channels,
+        The input audio signal with at least two channels.
         The ndarray must have the following format: (n_channels, time_step).
     n_sources : int
         How many sources want to be seperated (maximun observed sources).
         (relative `numsources` in the paper)
     sample_rate : int
         Sample rate of the input audio signal (e.g 16000).
-    mic_pair : tuple
+    mic_pair : tuple, optional
         Configure which channel x1 and x2 are, assuming the input is a
         multi-channel audio. It raised an error if input is mono, i.g.
         shape=(1, :) is mono, shape=(2, :) is stereo. The default is
         None (equivalent to tuple(0, 1)).
-    attenuation_max : float
+    attenuation_max : float, optional
         Only consider attenuation yielding estimates in bounds.
         (relative `maxa` in the paper)
-    n_attenuation_bins : int
+    n_attenuation_bins : int, optional
         The range of attenuation values distributed into bins, default is 35.
         (relative `abins` in the paper)
-    delay_max : float
+    delay_max : float, optional
         Only consider delay yielding estimates in bounds.
         (relative `maxd` in the paper)
-    n_delay_bins : int
+    n_delay_bins : int, optional
         The range of delay values distributed into bins, default is 50.
         (relative `dbins` in the paper)
-    p : int
+    p : int, optional
         Weight the histogram with the symmetric attenuation estimator,
         default is 1.
-    q : int
+    q : int, optional
         Weight the histogram with the delay estimator, default is 0.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from bss import Duet
     >>> from scipy.io.wavfile import read, write
     >>> # x is stereo(2 channels)
@@ -235,6 +246,11 @@ class Duet(object):
 
         Following the step.1 in the paper.
 
+        Parameters
+        ----------
+        mic_pair : tuple
+            Microphone pair indices.
+
         Returns
         -------
         tf1 : ndarray
@@ -283,10 +299,10 @@ class Duet(object):
         Calculate the symmetric attenuation (alpha) and delay (delta) for each t-f point.
 
         Following the step.2 in the paper, 'alpha' relative symmetric attenuation and
-        'delta' relative delay
+        'delta' relative delay.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         tf1 : ndarray
             STFT of x1, output from the stft function.
         tf2 : ndarray
@@ -312,12 +328,12 @@ class Duet(object):
 
     def _compute_weighted_hist(self, alpha, delta):
         """
-        Calculate weighted histogram
+        Calculate weighted histogram.
 
         Following the step.3 in the paper.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         alpha : ndarray
             The symmetric attenuation.
             The ndarray must have the following format (t, f).
@@ -370,14 +386,14 @@ class Duet(object):
 
         Following the step.4 in the paper.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         norm_atn_delay_hist : ndarray
             A normalized 2D histogram of symmetric attenuation and delay.
             The ndarray must have the following format (alpha, delta).
-        n_peaks : int
+        n_peaks : int, optional
             How many peaks should be detected. If is None, it will set ot 5.
-        width : ndarray
+        width : ndarray, optional
             Required width of peaks in samples.
         prominences : ndarray
             The calculated prominences for each peak in peaks. Wikipedia
@@ -441,8 +457,8 @@ class Duet(object):
 
         Following the step.5 in the paper.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         sym_atn_peak : ndarray
             An array contains the peaks of symmetric attenuation.
             The ndarray must have the following format (n_peaks, ).
@@ -450,7 +466,7 @@ class Duet(object):
         Returns
         -------
         peaka : ndarray
-            an array contains the peaks of attenuation.
+            An array contains the peaks of attenuation.
             The ndarray must have the following format (n_peaks, ).
         bestind : ndarray
             An array contains the each source which is a mask.
@@ -478,8 +494,8 @@ class Duet(object):
 
         Following the step.6 and step.7 in the paper.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         atn_peak : ndarray
             An array contains the peaks of attenuation.
             The ndarray must have the following format (n_peaks, ).
@@ -490,7 +506,7 @@ class Duet(object):
         Returns
         -------
         est : ndarray
-            an array contains a seperated wave stream of all speakers.
+            An array contains a seperated wave stream of all speakers.
             The ndarray must have the following format (batch, time_step).
         """
         # 'h' stands for helper, we're using helper variables to break down
