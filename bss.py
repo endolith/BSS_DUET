@@ -39,6 +39,8 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
 
     Parameters
     ----------
+    n_sources : int
+        Number of output channels for the reconstructed signal.
     timefreqmat : ndarray
         The complex matrix time-freq representation.
     swin : ndarray
@@ -406,7 +408,9 @@ class Duet(object):
             How many peaks should be detected. If is None, it will set ot 5.
         width : ndarray, optional
             Required width of peaks in samples.
-        prominences : ndarray
+        threshold : float, optional
+            Minimum threshold for peak detection (used by find_peak_indices).
+        prominence : ndarray, optional
             The calculated prominences for each peak in peaks. Wikipedia
             article for Topographic Prominence:
             https://en.wikipedia.org/wiki/Topographic_prominence
