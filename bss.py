@@ -1,16 +1,17 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import scipy as sp
-import sys
-from matplotlib.gridspec import GridSpec
-from pathlib import Path
-from scipy.signal import convolve2d, find_peaks
-from find_peaks import find_peak_indices
-from functools import wraps
-
 import cProfile
 import pstats
+import sys
+from functools import wraps
+from pathlib import Path
 from time import strftime
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy as sp
+from matplotlib.gridspec import GridSpec
+from scipy.signal import convolve2d, find_peaks
+
+from find_peaks import find_peak_indices
 
 np.set_printoptions(threshold=sys.maxsize)
 FILEDIR = Path(__file__).resolve().parent
@@ -22,12 +23,12 @@ def profile_perf(func):
     def wrapper(*args, **kwargs):
         with cProfile.Profile() as pr:
             result = func(*args, **kwargs)
-        with open(
-            f"perf_{strftime(r'%m_%d-%H_%M_%S')}_{func.__name__}.txt", 'w', encoding="utf-8"
-        ) as stream:
+        with open(f"perf_{strftime(r'%m_%d-%H_%M_%S')}_{func.__name__}.txt",
+                  'w', encoding="utf-8") as stream:
             stats = pstats.Stats(pr, stream=stream)
             stats.strip_dirs().sort_stats('tottime').print_stats()
-            print(f"function `{func.__name__}` calls in {stats.get_stats_profile().total_tt} seconds")
+            print(f"function `{func.__name__}` calls in "
+                  f"{stats.get_stats_profile().total_tt} seconds")
         return result
     return wrapper
 
@@ -204,17 +205,19 @@ class Duet(object):
         # For each time/frequency compare the phase and amplitude of the left and
         # right channels. This gives two new coordinates, instead of time-frequency
         # it is phase-amplitude differences.
-        self.symmetric_atn, self.delay = self._compute_atn_delay(self.tf1, self.tf2, self.fmat)
+        self.symmetric_atn, self.delay = self._compute_atn_delay(
+            self.tf1, self.tf2, self.fmat)
 
         # Build a 2-d histogram (one dimension is phase, one is amplitude) where
         # the height at any phase/amplitude is the count of time-frequency bins that
         # have approximately that phase/amplitude.
-        self.norm_atn_delay_hist, self.tf_weight = self._compute_weighted_hist(self.symmetric_atn, self.delay)
+        self.norm_atn_delay_hist, self.tf_weight = self._compute_weighted_hist(
+            self.symmetric_atn, self.delay)
 
         # Find the location of peaks in the attenuation-delay plane
         self.sym_atn_peak, self.delay_peak = self._find_n_peaks(
-            self.norm_atn_delay_hist, n_peaks=self.n_sources, width=0.5, prominence=5.0
-        )
+            self.norm_atn_delay_hist, n_peaks=self.n_sources, width=0.5,
+            prominence=5.0)
 
         # Assign each time-frequency frame to the nearest peak in phase/amplitude
         # space. This partitions the spectrogram into sources (one peak per source)
@@ -246,8 +249,12 @@ class Duet(object):
         self.x2 = self.x[mic_pair[1]] / np.iinfo(np.int16).max
 
         # time-freq domain
-        _, _, tf1 = sp.signal.stft(self.x1, fs=self.fs, window=self._awin, nperseg=self._win_length, return_onesided=False)
-        _, _, tf2 = sp.signal.stft(self.x2, fs=self.fs, window=self._awin, nperseg=self._win_length, return_onesided=False)
+        _, _, tf1 = sp.signal.stft(self.x1, fs=self.fs, window=self._awin,
+                                   nperseg=self._win_length,
+                                   return_onesided=False)
+        _, _, tf2 = sp.signal.stft(self.x2, fs=self.fs, window=self._awin,
+                                   nperseg=self._win_length,
+                                   return_onesided=False)
 
         # removing DC component
         # Since the scipy stft will scale the return value, in order to match the
@@ -331,19 +338,23 @@ class Duet(object):
         tf_weight = h1 * h2
 
         # only consider time-freq points yielding estimates in bounds
-        amask = (np.abs(alpha) < self.attenuation_max) & (np.abs(delta) < self.delay_max)
+        amask = ((np.abs(alpha) < self.attenuation_max) &
+                 (np.abs(delta) < self.delay_max))
         alpha_vec = alpha[amask]
         delta_vec = delta[amask]
         tf_weight = tf_weight[amask]
 
         # determine histogram indices
-        alphaind = np.around((self.n_attenuation_bins-1)*(alpha_vec+self.attenuation_max)/(2*self.attenuation_max))
-        deltaind = np.around((self.n_delay_bins-1)*(delta_vec+self.delay_max)/(2*self.delay_max))
+        alphaind = np.around((self.n_attenuation_bins-1) *
+                             (alpha_vec+self.attenuation_max)/(2*self.attenuation_max))
+        deltaind = np.around((self.n_delay_bins-1) *
+                             (delta_vec+self.delay_max)/(2*self.delay_max))
 
         # FULL-SPARSE TRICK TO CREATE 2D WEIGHTED HISTOGRAM
         # A(alphaind(k),deltaind(k)) = tf_weight(k), S is abins-by-dbins
         A = sp.sparse.csr_matrix(
-            (tf_weight, (alphaind, deltaind)), shape=(self.n_attenuation_bins, self.n_delay_bins)
+            (tf_weight, (alphaind, deltaind)),
+            shape=(self.n_attenuation_bins, self.n_delay_bins)
         ).toarray()
 
         # smooth the histogram - local average 3-by-3 neighboring bins
@@ -383,7 +394,8 @@ class Duet(object):
             The ndarray must have the following format (n_peaks, ).
         """
         x = np.linspace(-self.delay_max, self.delay_max, self.n_delay_bins)
-        y = np.linspace(-self.attenuation_max, self.attenuation_max, self.n_attenuation_bins)
+        y = np.linspace(-self.attenuation_max, self.attenuation_max,
+                        self.n_attenuation_bins)
 
         if n_peaks is None:
             n_peaks = 5
@@ -392,8 +404,8 @@ class Duet(object):
             print("using max-peak searching")
             # Peaks: [a_idx, d_inx]
             peaks = np.asarray(
-                find_peak_indices(norm_atn_delay_hist, n_peaks=n_peaks, min_dist=1, threshold=threshold)
-            )
+                find_peak_indices(norm_atn_delay_hist, n_peaks=n_peaks,
+                                  min_dist=1, threshold=threshold))
 
             cand_peaks = norm_atn_delay_hist[peaks[:, 0], peaks[:, 1]]
             if n_peaks is None:
@@ -528,7 +540,8 @@ class Duet(object):
 
         h = np.concatenate((h1, h2), axis=1)
 
-        est = tfsynthesis(observed_src, h, np.sqrt(2)*self._awin/1024, self._hop_length, self._nfft)
+        est = tfsynthesis(observed_src, h, np.sqrt(2)*self._awin/1024,
+                          self._hop_length, self._nfft)
 
         return est[:, 0:self.x1.shape[-1]]
 
@@ -537,15 +550,18 @@ class Duet(object):
             raise RuntimeError("It should compute a weighted histogram first.")
 
         X = np.linspace(-self.delay_max, self.delay_max, self.n_delay_bins)
-        Y = np.linspace(-self.attenuation_max, self.attenuation_max, self.n_attenuation_bins)
+        Y = np.linspace(-self.attenuation_max, self.attenuation_max,
+                        self.n_attenuation_bins)
         X, Y = np.meshgrid(X, Y)
         Z = self.norm_atn_delay_hist
 
         fig_hist3d = plt.figure(figsize=(8, 8))
         ax = fig_hist3d.add_subplot(111, projection='3d')
         ax.plot_surface(X, Y, Z, cmap="plasma", linewidth=0, alpha=0.8)
-        ax.plot(X[0, :], np.max(Z, axis=0), zdir="y", c="hotpink", zs=self.attenuation_max)
-        ax.plot(Y[:, 0], np.max(Z, axis=1), zdir="x", c="hotpink", zs=-self.delay_max)
+        ax.plot(X[0, :], np.max(Z, axis=0), zdir="y", c="hotpink",
+                zs=self.attenuation_max)
+        ax.plot(Y[:, 0], np.max(Z, axis=1), zdir="x", c="hotpink",
+                zs=-self.delay_max)
         ax.contour(X, Y, Z, zdir='z', offset=Z.min()-Z.max())
         ax.set_zlim(Z.min()-Z.max(), Z.max()*1.5)
         ax.tick_params(labelsize="large")
