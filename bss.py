@@ -35,12 +35,23 @@ def profile_perf(func):
 
 def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     """
-    time-frequency synthesis\n
-    TIMEFREQMAT is the complex matrix time-freq representation\n
-    SWIN is the synthesis window\n
-    TIMESTEP is the # of samples between adjacent time windows.\n
-    NUMFREQ is the # of frequency components per time point.\n
-    X contains the reconstructed signal.\n
+    Time-frequency synthesis.
+
+    Parameters
+    ----------
+    timefreqmat : ndarray
+        The complex matrix time-freq representation.
+    swin : ndarray
+        The synthesis window.
+    hop_length : int
+        The number of samples between adjacent time windows.
+    n_fft : int
+        The number of frequency components per time point.
+
+    Returns
+    -------
+    x : ndarray
+        The reconstructed signal.
     """
     # MATLAB and Fortran use column-major layout by default,
     # whereas C and C++ use row-major layout
