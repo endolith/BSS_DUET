@@ -35,7 +35,7 @@ def profile_perf(func):
 
 def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     """
-    Time-frequency synthesis.
+    Synthesize the original signals from the time-frequency representation.
 
     Parameters
     ----------
@@ -82,6 +82,8 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     temp = n_fft * np.fft.ifft(timefreqmat, axis=1).real
     for i in range(numtime):
         x[:, i * hop_length: (i+2) * hop_length] += temp[:, ind, i] * swin
+
+    # TODO: Replace all this with scipy.signal.istft?
 
     return x
 
