@@ -66,7 +66,7 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     x = np.zeros((n_sources, (numtime-1) * hop_length + win_length))
 
     # Using broadcasted version can speed up about 4 times.
-    # Origin code:
+    # Original code:
     # for i in range(numtime):
     #     temp = n_fft * ifft(timefreqmat[:, i]).real
     #     sind = i * hop_length
