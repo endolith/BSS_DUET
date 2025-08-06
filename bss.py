@@ -65,7 +65,10 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     ind = np.fmod(np.arange(win_length), n_fft)
     x = np.zeros((n_sources, (numtime-1) * hop_length + win_length))
 
-    # Using broadcasted version can speed up about 4 times.
+    # The original MATLAB version processes only a single channel,
+    # but this Python version handles multiple channels simultaneously
+    # using broadcasting for ~4x speed improvement.
+
     # Original code:
     # for i in range(numtime):
     #     temp = n_fft * ifft(timefreqmat[:, i]).real
