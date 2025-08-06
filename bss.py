@@ -117,11 +117,11 @@ def twoDsmooth(mat, ker):
 
     kr, kc = kmat.shape
     if (kr % 2 == 0):
-        kmat = convolve2d(kmat, np.ones((2, 1)), 'symm', 'same')
+        kmat = convolve2d(kmat, np.ones((2, 1)), 'same', 'symm')
         kr += 1
 
     if (kc % 2 == 0):
-        kmat = convolve2d(kmat, np.ones((1, 2)), 'symm', 'same')
+        kmat = convolve2d(kmat, np.ones((1, 2)), 'same', 'symm')
         kc += 1
 
     rota = np.rot90(kmat, 2)
