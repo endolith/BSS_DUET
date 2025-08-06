@@ -41,8 +41,7 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     ----------
     n_sources : int
         Number of output channels for the reconstructed signal.
-        Could be derived from timefreqmat.shape[0] but kept as parameter
-        for clarity and consistency with original MATLAB interface.
+        TODO: This parameter could be derived from timefreqmat.shape[0] and removed.
     timefreqmat : ndarray
         The complex matrix time-freq representation.
         Shape: (n_sources, n_fft, numtime). Note: the original MATLAB version
@@ -419,8 +418,9 @@ class Duet(object):
         threshold : float, optional
             Minimum threshold for peak detection (used by find_peak_indices).
         prominence : number or sequence, optional
-            Required prominence of peaks. Either a number, None, or a 2-element
-            sequence (min, max). See scipy.signal.find_peaks for details.
+            Required prominence of peaks. If None, uses max-peak searching instead.
+            Otherwise, passed to scipy.signal.find_peaks. See scipy.signal.find_peaks
+            for accepted types.
 
         Returns
         -------
