@@ -41,14 +41,19 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     ----------
     n_sources : int
         Number of output channels for the reconstructed signal.
+        Could be derived from timefreqmat.shape[0] but kept as parameter
+        for clarity and consistency with original MATLAB interface.
     timefreqmat : ndarray
         The complex matrix time-freq representation.
+        Shape: (n_sources, n_fft, numtime). Note: the original MATLAB version
+        expected (numfreq, numtime), but this version handles multiple sources.
     swin : ndarray
         The synthesis window.
     hop_length : int
         The number of samples between adjacent time windows.
     n_fft : int
-        The number of frequency components per time point.
+        The number of frequency components per time point (equivalent to numfreq
+        in the original MATLAB version).
 
     Returns
     -------
@@ -400,7 +405,7 @@ class Duet(object):
         """
         Find the n largest peaks in the 2D histogram.
 
-        Following the step.4 in the paper.
+        Following step 4 in the paper.
 
         Parameters
         ----------
@@ -408,15 +413,14 @@ class Duet(object):
             A normalized 2D histogram of symmetric attenuation and delay.
             The ndarray must have the following format (alpha, delta).
         n_peaks : int, optional
-            How many peaks should be detected. If is None, it will set ot 5.
+            How many peaks should be detected. Default is 5.
         width : ndarray, optional
             Required width of peaks in samples.
         threshold : float, optional
             Minimum threshold for peak detection (used by find_peak_indices).
-        prominence : ndarray, optional
-            The calculated prominences for each peak in peaks. Wikipedia
-            article for Topographic Prominence:
-            https://en.wikipedia.org/wiki/Topographic_prominence
+        prominence : number or sequence, optional
+            Required prominence of peaks. Either a number, None, or a 2-element
+            sequence (min, max). See scipy.signal.find_peaks for details.
 
         Returns
         -------
