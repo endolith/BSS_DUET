@@ -52,6 +52,7 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
         The number of samples between adjacent time windows.
     n_fft : int
         The number of frequency components per time point.
+        TODO: This parameter is unused and overwritten by timefreqmat.shape[1].
         (equivalent to ``numfreq`` in the original MATLAB version).
 
     Returns
