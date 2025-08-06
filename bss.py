@@ -103,6 +103,8 @@ def twoDsmooth(mat, ker):
         The 2D matrix to be smoothed.
     ker : int or ndarray
         Either a scalar or a matrix which is used as the averaging kernel.
+        If scalar, creates a boxcar kernel of size (ker, ker). For even
+        ker values, convolves with additional line kernels to ensure odd size.
 
     Returns
     -------
