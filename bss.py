@@ -46,14 +46,14 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
     timefreqmat : ndarray
         The complex matrix time-freq representation.
         Shape: (n_sources, n_fft, numtime). Note: the original MATLAB version
-        expected (numfreq, numtime), but this version handles multiple sources.
+        expected (n_fft, numtime), but this version handles multiple sources.
     swin : ndarray
         The synthesis window.
     hop_length : int
         The number of samples between adjacent time windows.
     n_fft : int
-        The number of frequency components per time point (equivalent to numfreq
-        in the original MATLAB version).
+        The number of frequency components per time point.
+        (equivalent to ``numfreq`` in the original MATLAB version).
 
     Returns
     -------
