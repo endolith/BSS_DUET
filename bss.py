@@ -112,7 +112,7 @@ def twoDsmooth(mat, ker):
         len(ker)
         kmat = ker
 
-    except:
+    except TypeError:
         kmat = np.ones((ker, ker)) / ker**2
 
     kr, kc = kmat.shape
