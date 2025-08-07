@@ -292,8 +292,8 @@ class Duet(object):
             Frequency matrix, the ndarray must have the following format (t, f).
         """
         # Dividing by maximum to normalize
-        self.x1 = self.x[mic_pair[0]] / np.iinfo(np.int16).max
-        self.x2 = self.x[mic_pair[1]] / np.iinfo(np.int16).max
+        self.x1 = self.x[:, mic_pair[0]] / np.iinfo(np.int16).max
+        self.x2 = self.x[:, mic_pair[1]] / np.iinfo(np.int16).max
 
         # time-frequency domain
         _, _, tf1 = sp.signal.stft(self.x1, fs=self.fs, window=self._awin,
