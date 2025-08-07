@@ -619,23 +619,31 @@ class Duet(object):
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
 
+        # Convert to dBFS and set limits
+        mag1_db = 20 * np.log10(np.abs(self.tf1) + 1e-10)
+        mag2_db = 20 * np.log10(np.abs(self.tf2) + 1e-10)
+        vmin = max(mag1_db.min(), mag2_db.min())
+        vmax = max(mag1_db.max(), mag2_db.max())
+
         # Plot first channel spectrogram
-        im1 = ax1.imshow(np.abs(self.tf1), aspect='auto', origin='lower',
+        im1 = ax1.imshow(mag1_db, aspect='auto', origin='lower',
                          extent=[0, time_axis[-1], 0, freq_axis[-1]/1000],
-                         cmap='viridis')
+                         cmap='viridis', vmin=vmin, vmax=vmax)
         ax1.set_title(f'Channel 1 Spectrogram (Microphone {self.mic_pair[0]})')
         ax1.set_ylabel('Frequency (kHz)')
         ax1.set_xlabel('Time (s)')
-        plt.colorbar(im1, ax=ax1, label='Magnitude')
+        ax1.set_yscale('log')
+        plt.colorbar(im1, ax=ax1, label='Magnitude (dBFS)')
 
         # Plot second channel spectrogram
-        im2 = ax2.imshow(np.abs(self.tf2), aspect='auto', origin='lower',
+        im2 = ax2.imshow(mag2_db, aspect='auto', origin='lower',
                          extent=[0, time_axis[-1], 0, freq_axis[-1]/1000],
-                         cmap='viridis')
+                         cmap='viridis', vmin=vmin, vmax=vmax)
         ax2.set_title(f'Channel 2 Spectrogram (Microphone {self.mic_pair[1]})')
         ax2.set_ylabel('Frequency (kHz)')
         ax2.set_xlabel('Time (s)')
-        plt.colorbar(im2, ax=ax2, label='Magnitude')
+        ax2.set_yscale('log')
+        plt.colorbar(im2, ax=ax2, label='Magnitude (dBFS)')
 
         plt.tight_layout()
         plt.show()
