@@ -91,9 +91,9 @@ def tfsynthesis(n_sources, timefreqmat, swin, hop_length, n_fft):
 
 def twoDsmooth(mat, ker):
     """
-    Smoothening for better identification of the peaks in a graph.
+    Smoothing for better identification of the peaks in a graph.
 
-    Could have used Gaussian Kernels to do the same but it seemed
+    Could have used Gaussian kernels to do the same but it seemed
     better visual effects were given when this algorithm was followed
     (Again, based on original CASA495).
 
@@ -136,8 +136,8 @@ class Duet(object):
     """
     Computes the Degenerate Unmixing Estimation Technique (DUET).
 
-    This class computes the the Degenerate Unmixing Estimation Technique
-    of an audio signal. It supports a microphone pair inputs.
+    This class computes the Degenerate Unmixing Estimation Technique
+    of an audio signal. It supports a pair of microphones as input.
 
     Parameters
     ----------
@@ -145,13 +145,13 @@ class Duet(object):
         The input audio signal with at least two channels.
         The ndarray must have the following format: (n_channels, time_step).
     n_sources : int
-        How many sources want to be seperated (maximun observed sources).
+        How many sources want to be separated (maximum observed sources).
         (relative `numsources` in the paper)
     sample_rate : int
         Sample rate of the input audio signal (e.g 16000).
     mic_pair : tuple, optional
         Configure which channel x1 and x2 are, assuming the input is a
-        multi-channel audio. It raised an error if input is mono, i.g.
+        multi-channel audio. It raises an error if input is mono, e.g.
         shape=(1, :) is mono, shape=(2, :) is stereo. The default is
         None (equivalent to tuple(0, 1)).
     attenuation_max : float, optional
@@ -285,11 +285,11 @@ class Duet(object):
         fmat : ndarray
             Frequency matrix, the ndarray must have the following format (t, f).
         """
-        # Dividing by maximum to normalise
+        # Dividing by maximum to normalize
         self.x1 = self.x[mic_pair[0]] / np.iinfo(np.int16).max
         self.x2 = self.x[mic_pair[1]] / np.iinfo(np.int16).max
 
-        # time-freq domain
+        # time-frequency domain
         _, _, tf1 = sp.signal.stft(self.x1, fs=self.fs, window=self._awin,
                                    nperseg=self._win_length,
                                    return_onesided=False)
@@ -307,7 +307,7 @@ class Duet(object):
         tf1 = tf1[1:, :] * self._awin.sum()
         tf2 = tf2[1:, :] * self._awin.sum()
 
-        # calculate pos/neg frequencies for later use in delay calc
+        # calculate positive/negative frequencies for later use in delay calculation
         h1 = np.arange(1, (self._nfft / 2) + 1)
         h2 = np.arange(-(self._nfft / 2) + 1, 0)
         freq = np.concatenate((h1, h2)) * ((2 * np.pi) / self._nfft)
@@ -378,7 +378,7 @@ class Duet(object):
         h2 = np.abs(self.fmat) ** self.q
         tf_weight = h1 * h2
 
-        # only consider time-freq points yielding estimates in bounds
+        # only consider time-frequency points yielding estimates in bounds
         amask = ((np.abs(alpha) < self.attenuation_max) &
                  (np.abs(delta) < self.delay_max))
         alpha_vec = alpha[amask]
@@ -430,11 +430,11 @@ class Duet(object):
         Returns
         -------
         atn_peak : ndarray
-            An array contains the peaks of symmetric attenuation.
-            The ndarray must have the following format (n_peaks, ).
+                    An array containing the peaks of symmetric attenuation.
+        The ndarray must have the following format (n_peaks, ).
         delay_peak : ndarray
-            An array contains the peaks of delay.
-            The ndarray must have the following format (n_peaks, ).
+        An array containing the peaks of delay.
+        The ndarray must have the following format (n_peaks, ).
         """
         x = np.linspace(-self.delay_max, self.delay_max, self.n_delay_bins)
         y = np.linspace(-self.attenuation_max, self.attenuation_max,
@@ -487,16 +487,16 @@ class Duet(object):
         Parameters
         ----------
         sym_atn_peak : ndarray
-            An array contains the peaks of symmetric attenuation.
+            An array containing the peaks of symmetric attenuation.
             The ndarray must have the following format (n_peaks, ).
 
         Returns
         -------
         peaka : ndarray
-            An array contains the peaks of attenuation.
+            An array containing the peaks of attenuation.
             The ndarray must have the following format (n_peaks, ).
         bestind : ndarray
-            An array contains the each source which is a mask.
+            An array containing each source which is a mask.
             The ndarray must have the following format (n_peaks, t, f)
         """
         # convert the symmetric attenuation back to attenuation
@@ -524,21 +524,21 @@ class Duet(object):
         Parameters
         ----------
         atn_peak : ndarray
-            An array contains the peaks of attenuation.
+            An array containing the peaks of attenuation.
             The ndarray must have the following format (n_peaks, ).
         bestind : ndarray
-            An array contains the each source which is a mask.
+            An array containing each source which is a mask.
             The ndarray must have the following format (n_peaks, t, f).
 
         Returns
         -------
         est : ndarray
-            An array contains a seperated wave stream of all speakers.
+            An array containing a separated wave stream of all speakers.
             The ndarray must have the following format (batch, time_step).
         """
         # 'h' stands for helper, we're using helper variables to break down
         # the logic of what's going on. Apologies for the order of the 'h's
-        # Broadcast(a bit faster) the n_sources estimations and return directly.
+        # Broadcast (a bit faster) the n_sources estimations and return directly.
         # h1     -> (1, 129)
         # h3     -> (1,) * (1023, 129) * (1023, 129)
         # h4     -> (1023, 129) / (1,)
@@ -550,7 +550,7 @@ class Duet(object):
         # new_h2 -> (n_src, 1023, 129) * (n_src, 1023, 129)
         # new_h  -> (n_src, 1+1023, 129)
         #
-        # Origin code:
+        # Original code:
         # est = np.zeros((self.n_sources, self.x1.shape[-1]))
         # for i in range(self.n_sources):
         #     mask = (bestind == i+1)
@@ -590,7 +590,7 @@ class Duet(object):
 
     def plot_atn_delay_hist(self):
         if self.norm_atn_delay_hist is None:
-            raise RuntimeError("It should compute a weighted histogram first.")
+            raise RuntimeError("A weighted histogram should be computed first.")
 
         X = np.linspace(-self.delay_max, self.delay_max, self.n_delay_bins)
         Y = np.linspace(-self.attenuation_max, self.attenuation_max,
