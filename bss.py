@@ -648,6 +648,35 @@ class Duet(object):
         plt.colorbar(im2, ax=ax2, label='Magnitude (dBFS)')
 
         plt.tight_layout()
+
+        # Add interactive hover functionality to show attenuation and delay
+        def on_hover(event):
+            if event.inaxes in [ax1, ax2]:
+                # Get the data coordinates
+                x, y = event.xdata, event.ydata
+                if x is not None and y is not None:
+                    # Convert to array indices
+                    time_idx = int(x / time_axis[-1] * self.tf1.shape[1])
+                    freq_idx = int(np.log10(y/20) / np.log10(20000/20) * self.tf1.shape[0])
+
+                    # Clamp indices to valid range
+                    time_idx = max(0, min(time_idx, self.tf1.shape[1]-1))
+                    freq_idx = max(0, min(freq_idx, self.tf1.shape[0]-1))
+
+                    # Get attenuation and delay values
+                    if hasattr(self, 'symmetric_atn') and hasattr(self, 'delay'):
+                        atn_val = self.symmetric_atn[freq_idx, time_idx]
+                        delay_val = self.delay[freq_idx, time_idx]
+                        # Use proper signs to maintain consistent title length
+                        atn_sign = '+' if atn_val >= 0 else '−'
+                        delay_sign = '+' if delay_val >= 0 else '−'
+                        ax1.set_title(f'Channel 1 Spectrogram (Microphone {self.mic_pair[0]}) - Attenuation: {atn_sign}{abs(atn_val):.3f}, Delay: {delay_sign}{abs(delay_val):.3f}')
+                        ax2.set_title(f'Channel 2 Spectrogram (Microphone {self.mic_pair[1]}) - Attenuation: {atn_sign}{abs(atn_val):.3f}, Delay: {delay_sign}{abs(delay_val):.3f}')
+                        plt.draw()
+
+        # Connect the hover event
+        fig.canvas.mpl_connect('motion_notify_event', on_hover)
+
         plt.show()
 
     def plot_atn_delay_hist(self):
