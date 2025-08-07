@@ -185,6 +185,9 @@ class Duet(object):
     >>> estimates = duet()
     >>> for i in range(duet.n_sources):
     >>>     write(f"output{i}.wav", duet.fs, estimates[i, :]+0.05*duet.x1)
+
+    Plot the attenuation-delay histogram
+    >>> duet.plot_atn_delay_hist()
     """
 
     def __init__(
