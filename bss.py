@@ -723,8 +723,8 @@ class Duet(object):
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
         # Plot with color based on magnitude
-        scatter = ax.scatter(alpha, delta, c=magnitude_norm, s=2, alpha=0.7,
-                           cmap='viridis', edgecolors='none')
+        scatter = ax.scatter(alpha, delta, c=magnitude_db, s=2, alpha=0.7,
+                           cmap='viridis', edgecolors='none', vmin=-40, vmax=0)
 
         ax.set_xlabel('Symmetric Attenuation')
         ax.set_ylabel('Delay')
