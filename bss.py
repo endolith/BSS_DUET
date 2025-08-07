@@ -770,17 +770,15 @@ class Duet(object):
         delta = delta[mask]
         classification = classification[mask]
 
-        # Create the scatter plot
+                # Create the scatter plot with same axes as gabor atoms
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
-        # Plot each source with a different color
-        colors = plt.cm.Set1(np.linspace(0, 1, self.n_sources))
+        # Plot each source with default matplotlib colors
         for i in range(self.n_sources):
             source_mask = classification == (i + 1)
             if np.any(source_mask):
                 ax.scatter(alpha[source_mask], delta[source_mask],
-                          c=[colors[i]], s=2, alpha=0.7,
-                          label=f'Source {i+1}')
+                          s=2, alpha=0.7, label=f'Source {i+1}')
 
         # Plot the detected peaks
         if hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
