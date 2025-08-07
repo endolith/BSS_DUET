@@ -176,8 +176,11 @@ class Duet(object):
     --------
     >>> from bss import Duet
     >>> from scipy.io.wavfile import read, write
-    >>> # x is stereo(2 channels)
-    >>> fs, x = read("<FILEDIR>/x.wav")
+    >>> import numpy as np
+    >>> # Load separate mono files and combine into stereo
+    >>> fs, x1 = read("Data/x1.wav")
+    >>> fs, x2 = read("Data/x2.wav")
+    >>> x = np.vstack([x1, x2])  # Combine into stereo format (2, time_steps)
     >>> duet = Duet(x, n_sources=5, sample_rate=fs)
     >>> estimates = duet()
     >>> for i in range(duet.n_sources):
