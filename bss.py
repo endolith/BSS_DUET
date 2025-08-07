@@ -192,10 +192,13 @@ class Duet(object):
     # TODO why is this a mirror image spectrogram?
 
     # Plot the Gabor atoms scatter plot
-    >>> duet.plot_gabor_atoms()
+    >>> duet.plot_attenuation_delay_scatter(coloring='magnitude')
 
     # Plot the source classification
-    >>> duet.plot_source_classification()
+    >>> duet.plot_attenuation_delay_scatter(coloring='classification')
+
+    # Plot sources with magnitude as lightness (best for seeing sources)
+    >>> duet.plot_attenuation_delay_scatter(coloring='magnitude_by_source')
 
     # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
@@ -687,13 +690,17 @@ class Duet(object):
 
         plt.show()
 
-    def plot_gabor_atoms(self):
+    def plot_attenuation_delay_scatter(self, coloring='magnitude', show_peaks=True):
         """
-        Plot the Gabor atoms (time-frequency points) as a scatter plot in
-        attenuation-delay space, colored by magnitude.
+        Plot time-frequency points in attenuation-delay space with different coloring options.
 
-        This shows the distribution of time-frequency points and their
-        corresponding attenuation-delay values.
+        Parameters
+        ----------
+        coloring : str, optional
+            Coloring scheme: 'magnitude' (dB magnitude), 'classification' (by source),
+            or 'magnitude_by_source' (source colors with magnitude as lightness)
+        show_peaks : bool, optional
+            Whether to show detected peaks as red X markers
         """
         if self.symmetric_atn is None or self.delay is None:
             raise RuntimeError("Attenuation and delay should be computed first (run the algorithm).")
@@ -702,94 +709,95 @@ class Duet(object):
         alpha = self.symmetric_atn.flatten()
         delta = self.delay.flatten()
 
-                # Get the magnitude values for coloring
-        mag1 = np.abs(self.tf1).flatten()
-        mag2 = np.abs(self.tf2).flatten()
-        # Use the geometric mean of both channels for coloring
-        magnitude = np.sqrt(mag1 * mag2)
-
-        # Convert to dB like the spectrograms
-        magnitude_db = 20 * np.log10(magnitude + 1e-10)
-
-        # Filter out low-magnitude points (keep points above -40 dB)
-        mask = magnitude_db > -40
-
-        # Apply mask to all arrays
-        alpha = alpha[mask]
-        delta = delta[mask]
-        magnitude_db = magnitude_db[mask]
-
-        # Normalize dB magnitude to 0-1 for coloring (from -40 dB to 0 dB)
-        magnitude_norm = (magnitude_db + 40) / 40
-
         # Create the scatter plot
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
-        # Plot with color based on magnitude
-        scatter = ax.scatter(alpha, delta, c=magnitude_db, s=2, alpha=0.7,
-                           cmap='viridis', edgecolors='none', vmin=-40, vmax=0)
+        if coloring == 'magnitude':
+            # Get the magnitude values for coloring
+            mag1 = np.abs(self.tf1).flatten()
+            mag2 = np.abs(self.tf2).flatten()
+            magnitude = np.sqrt(mag1 * mag2)
+            magnitude_db = 20 * np.log10(magnitude + 1e-10)
 
-        ax.set_xlabel('Symmetric Attenuation')
-        ax.set_ylabel('Delay')
-        ax.set_title('Gabor Atoms in Attenuation-Delay Space')
+            # Filter out low-magnitude points (keep points above -40 dB)
+            mask = magnitude_db > -40
+            alpha_plot = alpha[mask]
+            delta_plot = delta[mask]
+            magnitude_db_plot = magnitude_db[mask]
 
-        # Add colorbar
-        cbar = plt.colorbar(scatter, ax=ax)
-        cbar.set_label('Magnitude (dB)')
+            # Plot with color based on magnitude
+            scatter = ax.scatter(alpha_plot, delta_plot, c=magnitude_db_plot, s=2, alpha=0.7,
+                               cmap='viridis', edgecolors='none', vmin=-40, vmax=0)
 
-        # Set axis limits to match histogram bounds
-        ax.set_xlim(-self.attenuation_max, self.attenuation_max)
-        ax.set_ylim(-self.delay_max, self.delay_max)
+            # Add colorbar
+            cbar = plt.colorbar(scatter, ax=ax)
+            cbar.set_label('Magnitude (dB)')
+            ax.set_title('Gabor Atoms in Attenuation-Delay Space')
 
-        # Add grid
-        ax.grid(True, alpha=0.3)
+        elif coloring == 'classification':
+            if self.bestind is None:
+                raise RuntimeError("Source classification should be computed first (run the algorithm).")
 
-        plt.tight_layout()
-        plt.show()
+            # Get the classification for each point
+            classification = self.bestind.flatten()
 
-    def plot_source_classification(self):
-        """
-        Plot the classification of time-frequency points to sources.
+            # Filter out unclassified points (value 0)
+            mask = classification > 0
+            alpha_plot = alpha[mask]
+            delta_plot = delta[mask]
+            classification_plot = classification[mask]
 
-        Shows how each time-frequency point is assigned to different sources
-        based on their proximity to the detected peaks in attenuation-delay space.
-        """
-        if self.bestind is None:
-            raise RuntimeError("Source classification should be computed first (run the algorithm).")
+            # Plot each source with default matplotlib colors
+            for i in range(self.n_sources):
+                source_mask = classification_plot == (i + 1)
+                if np.any(source_mask):
+                    ax.scatter(alpha_plot[source_mask], delta_plot[source_mask],
+                              s=2, alpha=0.7, label=f'Source {i+1}')
 
-        # Get the attenuation and delay values
-        alpha = self.symmetric_atn.flatten()
-        delta = self.delay.flatten()
+            ax.legend()
+            ax.set_title('Time-Frequency Point Classification to Sources')
 
-        # Get the classification for each point
-        classification = self.bestind.flatten()
+        elif coloring == 'magnitude_by_source':
+            if self.bestind is None:
+                raise RuntimeError("Source classification should be computed first (run the algorithm).")
 
-        # Filter out unclassified points (value 0)
-        mask = classification > 0
-        alpha = alpha[mask]
-        delta = delta[mask]
-        classification = classification[mask]
+            # Get magnitude and classification
+            mag1 = np.abs(self.tf1).flatten()
+            mag2 = np.abs(self.tf2).flatten()
+            magnitude = np.sqrt(mag1 * mag2)
+            magnitude_db = 20 * np.log10(magnitude + 1e-10)
+            classification = self.bestind.flatten()
 
-                # Create the scatter plot with same axes as gabor atoms
-        fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+            # Filter out unclassified points and low magnitude
+            mask = (classification > 0) & (magnitude_db > -40)
+            alpha_plot = alpha[mask]
+            delta_plot = delta[mask]
+            classification_plot = classification[mask]
+            magnitude_db_plot = magnitude_db[mask]
 
-        # Plot each source with default matplotlib colors
-        for i in range(self.n_sources):
-            source_mask = classification == (i + 1)
-            if np.any(source_mask):
-                ax.scatter(alpha[source_mask], delta[source_mask],
-                          s=2, alpha=0.7, label=f'Source {i+1}')
+            # Plot each source with magnitude as lightness
+            for i in range(self.n_sources):
+                source_mask = classification_plot == (i + 1)
+                if np.any(source_mask):
+                    # Normalize magnitude to 0-1 for this source
+                    source_mag = magnitude_db_plot[source_mask]
+                    if len(source_mag) > 0:
+                        mag_norm = (source_mag - source_mag.min()) / (source_mag.max() - source_mag.min() + 1e-10)
+                        # Use default color with varying alpha based on magnitude
+                        ax.scatter(alpha_plot[source_mask], delta_plot[source_mask],
+                                  s=2, alpha=0.3 + 0.7*mag_norm, label=f'Source {i+1}')
 
-        # Plot the detected peaks
-        if hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
+            ax.legend()
+            ax.set_title('Sources with Magnitude as Lightness')
+
+        # Show detected peaks if requested
+        if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
             ax.scatter(self.sym_atn_peak, self.delay_peak,
                       c='red', s=100, marker='x', linewidth=2,
                       label='Detected Peaks')
 
         ax.set_xlabel('Symmetric Attenuation')
         ax.set_ylabel('Delay')
-        ax.set_title('Time-Frequency Point Classification to Sources')
-        ax.legend()
 
         # Set axis limits to match histogram bounds
         ax.set_xlim(-self.attenuation_max, self.attenuation_max)
