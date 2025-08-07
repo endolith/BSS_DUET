@@ -186,7 +186,10 @@ class Duet(object):
     >>> for i in range(duet.n_sources):
     >>>     write(f"output{i}.wav", duet.fs, estimates[i, :]+0.05*duet.x1)
 
-    Plot the attenuation-delay histogram
+    # Plot the input spectrograms
+    >>> duet.plot_spectrograms()
+
+    # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
     """
 
@@ -599,6 +602,43 @@ class Duet(object):
                 est[i] = est[i] / np.max(np.abs(est[i])) * 0.95
 
         return est
+
+    def plot_spectrograms(self):
+        """
+        Plot the spectrograms of the input channels.
+
+        This shows the time-frequency representations that DUET uses
+        for source separation.
+        """
+        if self.tf1 is None or self.tf2 is None:
+            raise RuntimeError("Spectrograms should be computed first (run the algorithm).")
+
+        # Create time and frequency axes
+        time_axis = np.arange(self.tf1.shape[1]) * self._hop_length / self.fs
+        freq_axis = np.arange(self.tf1.shape[0]) * self.fs / self._nfft
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
+
+        # Plot first channel spectrogram
+        im1 = ax1.imshow(np.abs(self.tf1), aspect='auto', origin='lower',
+                         extent=[0, time_axis[-1], 0, freq_axis[-1]/1000],
+                         cmap='viridis')
+        ax1.set_title(f'Channel 1 Spectrogram (Microphone {self.mic_pair[0]})')
+        ax1.set_ylabel('Frequency (kHz)')
+        ax1.set_xlabel('Time (s)')
+        plt.colorbar(im1, ax=ax1, label='Magnitude')
+
+        # Plot second channel spectrogram
+        im2 = ax2.imshow(np.abs(self.tf2), aspect='auto', origin='lower',
+                         extent=[0, time_axis[-1], 0, freq_axis[-1]/1000],
+                         cmap='viridis')
+        ax2.set_title(f'Channel 2 Spectrogram (Microphone {self.mic_pair[1]})')
+        ax2.set_ylabel('Frequency (kHz)')
+        ax2.set_xlabel('Time (s)')
+        plt.colorbar(im2, ax=ax2, label='Magnitude')
+
+        plt.tight_layout()
+        plt.show()
 
     def plot_atn_delay_hist(self):
         if self.norm_atn_delay_hist is None:
