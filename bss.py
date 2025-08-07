@@ -592,7 +592,13 @@ class Duet(object):
         est = tfsynthesis(observed_src, h, np.sqrt(2)*self._awin/1024,
                           self._hop_length, self._nfft)
 
-        return est[:, 0:self.x1.shape[-1]]
+        # Normalize each separated source to prevent clipping
+        est = est[:, 0:self.x1.shape[-1]]
+        for i in range(est.shape[0]):
+            if np.max(np.abs(est[i])) > 0:
+                est[i] = est[i] / np.max(np.abs(est[i])) * 0.95
+
+        return est
 
     def plot_atn_delay_hist(self):
         if self.norm_atn_delay_hist is None:
