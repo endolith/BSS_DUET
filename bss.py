@@ -617,7 +617,8 @@ class Duet(object):
         time_axis = np.arange(self.tf1.shape[1]) * self._hop_length / self.fs
         freq_axis = np.arange(self.tf1.shape[0]) * self.fs / self._nfft
 
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True,
+                                       sharey=True)
 
         # Normalize to full scale and convert to dBFS
         max_val = max(np.max(np.abs(self.tf1)), np.max(np.abs(self.tf2)))
