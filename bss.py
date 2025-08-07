@@ -189,6 +189,8 @@ class Duet(object):
     # Plot the input spectrograms
     >>> duet.plot_spectrograms()
 
+    # TODO why is this a mirror image spectrogram?
+
     # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
     """
