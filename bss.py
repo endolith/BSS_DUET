@@ -192,10 +192,10 @@ class Duet(object):
     # TODO why is this a mirror image spectrogram?
 
     # Plot the Gabor atoms scatter plot
-    >>> duet.plot_attenuation_delay_scatter(coloring='magnitude')
+    >>> duet.plot_atn_delay_scatter(coloring='magnitude')
 
     # Plot the source classification
-    >>> duet.plot_attenuation_delay_scatter(coloring='classification')
+    >>> duet.plot_atn_delay_scatter(coloring='classification')
 
     # Plot sources with magnitude as lightness (best for seeing sources)
     >>> duet.plot_attenuation_delay_scatter(coloring='magnitude_by_source')
@@ -690,7 +690,7 @@ class Duet(object):
 
         plt.show()
 
-    def plot_attenuation_delay_scatter(self, coloring='magnitude', show_peaks=True):
+    def plot_atn_delay_scatter(self, coloring='magnitude', show_peaks=True):
         """
         Plot time-frequency points in attenuation-delay space with different coloring options.
 
