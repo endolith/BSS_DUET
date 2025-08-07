@@ -705,24 +705,25 @@ class Duet(object):
         # Use the geometric mean of both channels for coloring
         magnitude = np.sqrt(mag1 * mag2)
 
-        # Filter out low-magnitude points (keep top 20% by magnitude)
-        magnitude_threshold = np.percentile(magnitude, 80)
-        mask = magnitude > magnitude_threshold
+        # Convert to dB like the spectrograms
+        magnitude_db = 20 * np.log10(magnitude + 1e-10)
+
+        # Filter out low-magnitude points (keep points above -40 dB)
+        mask = magnitude_db > -40
 
         # Apply mask to all arrays
         alpha = alpha[mask]
         delta = delta[mask]
-        magnitude = magnitude[mask]
+        magnitude_db = magnitude_db[mask]
 
-        # Normalize magnitude to 0-1 for coloring
-        if np.max(magnitude) > 0:
-            magnitude = magnitude / np.max(magnitude)
+        # Normalize dB magnitude to 0-1 for coloring (from -40 dB to 0 dB)
+        magnitude_norm = (magnitude_db + 40) / 40
 
         # Create the scatter plot
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
         # Plot with color based on magnitude
-        scatter = ax.scatter(alpha, delta, c=magnitude, s=2, alpha=0.7,
+        scatter = ax.scatter(alpha, delta, c=magnitude_norm, s=2, alpha=0.7,
                            cmap='viridis', edgecolors='none')
 
         ax.set_xlabel('Symmetric Attenuation')
@@ -731,7 +732,7 @@ class Duet(object):
 
         # Add colorbar
         cbar = plt.colorbar(scatter, ax=ax)
-        cbar.set_label('Normalized Magnitude')
+        cbar.set_label('Magnitude (dB)')
 
         # Set axis limits to match histogram bounds
         ax.set_xlim(-self.attenuation_max, self.attenuation_max)
