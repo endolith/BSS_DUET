@@ -191,6 +191,9 @@ class Duet(object):
 
     # TODO why is this a mirror image spectrogram?
 
+    # Plot the Gabor atoms scatter plot
+    >>> duet.plot_gabor_atoms()
+
     # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
     """
@@ -679,6 +682,65 @@ class Duet(object):
         # Connect the hover event
         fig.canvas.mpl_connect('motion_notify_event', on_hover)
 
+        plt.show()
+
+    def plot_gabor_atoms(self):
+        """
+        Plot the Gabor atoms (time-frequency points) as a scatter plot in
+        attenuation-delay space, colored by magnitude.
+
+        This shows the distribution of time-frequency points and their
+        corresponding attenuation-delay values.
+        """
+        if self.symmetric_atn is None or self.delay is None:
+            raise RuntimeError("Attenuation and delay should be computed first (run the algorithm).")
+
+        # Get the attenuation and delay values
+        alpha = self.symmetric_atn.flatten()
+        delta = self.delay.flatten()
+
+                # Get the magnitude values for coloring
+        mag1 = np.abs(self.tf1).flatten()
+        mag2 = np.abs(self.tf2).flatten()
+        # Use the geometric mean of both channels for coloring
+        magnitude = np.sqrt(mag1 * mag2)
+
+        # Filter out low-magnitude points (keep top 20% by magnitude)
+        magnitude_threshold = np.percentile(magnitude, 80)
+        mask = magnitude > magnitude_threshold
+
+        # Apply mask to all arrays
+        alpha = alpha[mask]
+        delta = delta[mask]
+        magnitude = magnitude[mask]
+
+        # Normalize magnitude to 0-1 for coloring
+        if np.max(magnitude) > 0:
+            magnitude = magnitude / np.max(magnitude)
+
+        # Create the scatter plot
+        fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+
+        # Plot with color based on magnitude
+        scatter = ax.scatter(alpha, delta, c=magnitude, s=2, alpha=0.7,
+                           cmap='viridis', edgecolors='none')
+
+        ax.set_xlabel('Symmetric Attenuation')
+        ax.set_ylabel('Delay')
+        ax.set_title('Gabor Atoms in Attenuation-Delay Space')
+
+        # Add colorbar
+        cbar = plt.colorbar(scatter, ax=ax)
+        cbar.set_label('Normalized Magnitude')
+
+        # Set axis limits to match histogram bounds
+        ax.set_xlim(-self.attenuation_max, self.attenuation_max)
+        ax.set_ylim(-self.delay_max, self.delay_max)
+
+        # Add grid
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
         plt.show()
 
     def plot_atn_delay_hist(self):
