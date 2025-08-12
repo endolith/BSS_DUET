@@ -726,8 +726,9 @@ class Duet(object):
             magnitude_db_plot = magnitude_db[mask]
 
             # Plot with color based on magnitude
-            scatter = ax.scatter(alpha_plot, delta_plot, c=magnitude_db_plot, s=2, alpha=0.7,
-                               cmap='viridis', edgecolors='none', vmin=-40, vmax=0)
+            scatter = ax.scatter(alpha_plot, delta_plot, c=magnitude_db_plot,
+                                 s=2, alpha=0.7, cmap='viridis',
+                                 edgecolors='none', vmin=-40, vmax=0)
 
             # Add colorbar
             cbar = plt.colorbar(scatter, ax=ax)
@@ -752,7 +753,7 @@ class Duet(object):
                 source_mask = classification_plot == (i + 1)
                 if np.any(source_mask):
                     ax.scatter(alpha_plot[source_mask], delta_plot[source_mask],
-                              s=2, alpha=0.7, label=f'Source {i+1}')
+                               s=2, alpha=0.7, label=f'Source {i+1}')
 
             ax.legend()
             ax.set_title('Time-Frequency Point Classification to Sources')
@@ -785,7 +786,7 @@ class Duet(object):
                         mag_norm = (source_mag - source_mag.min()) / (source_mag.max() - source_mag.min() + 1e-10)
                         # Use default color with varying alpha based on magnitude
                         ax.scatter(alpha_plot[source_mask], delta_plot[source_mask],
-                                  s=2, alpha=0.3 + 0.7*mag_norm, label=f'Source {i+1}')
+                                   s=2, alpha=0.3 + 0.7*mag_norm, label=f'Source {i+1}')
 
             ax.legend()
             ax.set_title('Sources with Magnitude as Lightness')
@@ -793,8 +794,8 @@ class Duet(object):
         # Show detected peaks if requested
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
             ax.scatter(self.sym_atn_peak, self.delay_peak,
-                      c='red', s=100, marker='x', linewidth=2,
-                      label='Detected Peaks')
+                       c='red', s=100, marker='x', linewidth=2,
+                       label='Detected Peaks')
 
         ax.set_xlabel('Symmetric Attenuation')
         ax.set_ylabel('Delay')
@@ -834,6 +835,7 @@ class Duet(object):
 
         plt.tight_layout()
         plt.show()
+
 
 if __name__ == "__main__":
     # Load separate mono files and combine into stereo
