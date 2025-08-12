@@ -160,9 +160,9 @@ class Duet(object):
     n_attenuation_bins : int, optional
         The range of attenuation values distributed into bins, default is 35.
         (relative `abins` in the paper)
-    delay_max : float, optional
-        Only consider delay yielding estimates in bounds.
-        (relative `maxd` in the paper)
+                 delay_max : float, optional
+                 Only consider delay yielding estimates in bounds, in samples.
+                 (relative `maxd` in the paper)
     n_delay_bins : int, optional
         The range of delay values distributed into bins, default is 50.
         (relative `dbins` in the paper)
