@@ -837,6 +837,7 @@ class Duet(object):
         plt.show()
 
     def plot_atn_delay_hist(self):
+        """Plot the attenuation-delay histogram as a 3D surface plot."""
         if self.norm_atn_delay_hist is None:
             raise RuntimeError("A weighted histogram should be computed first.")
 
@@ -858,6 +859,36 @@ class Duet(object):
         ax.tick_params(labelsize="large")
         plt.xlabel("Delay", fontsize="xx-large")
         plt.ylabel("Attenuation", fontsize="xx-large")
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_atn_delay_hist_2d(self):
+        """Plot the attenuation-delay histogram as a 2D image plot (easier to interpret)."""
+        if self.norm_atn_delay_hist is None:
+            raise RuntimeError("A weighted histogram should be computed first.")
+
+        Z = self.norm_atn_delay_hist
+
+        fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+        im = ax.imshow(Z, extent=[-self.delay_max, self.delay_max,
+                                  -self.attenuation_max, self.attenuation_max],
+                        origin='lower', aspect='auto', cmap='viridis')
+
+        # Mark detected peaks
+        if hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
+            ax.scatter(self.delay_peak, self.sym_atn_peak,
+                        c='red', s=100, marker='x', linewidth=2,
+                        label='Detected Peaks')
+            ax.legend()
+
+        ax.set_xlabel('Delay (samples)')
+        ax.set_ylabel('Symmetric Attenuation')
+        ax.set_title('Attenuation-Delay Histogram')
+
+        # Add colorbar
+        cbar = plt.colorbar(im, ax=ax)
+        cbar.set_label('Weighted Count')
 
         plt.tight_layout()
         plt.show()
@@ -891,3 +922,4 @@ if __name__ == "__main__":
 
     # Plot the attenuation-delay histogram
     duet.plot_atn_delay_hist()
+    duet.plot_atn_delay_hist_2d()
