@@ -186,8 +186,11 @@ class Duet(object):
     >>> for i in range(duet.n_sources):
     >>>     write(f"output{i}.wav", duet.fs, estimates[i, :]+0.05*duet.x1)
 
-    # Plot the input spectrograms
-    >>> duet.plot_spectrograms()
+        # Plot the input spectrograms (logarithmic frequency axis)
+    >>> duet.plot_spectrograms(freq_scale='log')
+
+    # Or use linear frequency axis
+    >>> duet.plot_spectrograms(freq_scale='linear')
 
     # TODO why is this a mirror image spectrogram?
 
@@ -614,12 +617,18 @@ class Duet(object):
 
         return est
 
-    def plot_spectrograms(self):
+    def plot_spectrograms(self, freq_scale='log'):
         """
         Plot the spectrograms of the input channels.
 
         This shows the time-frequency representations that DUET uses
         for source separation.
+
+        Parameters
+        ----------
+        freq_scale : str, optional
+            Frequency axis scale: 'log' or 'linear'.
+            Default is 'log'.
         """
         if self.tf1 is None or self.tf2 is None:
             raise RuntimeError("Spectrograms should be computed first (run the algorithm).")
@@ -638,24 +647,30 @@ class Duet(object):
 
         # Plot first channel spectrogram
         im1 = ax1.imshow(mag1_db, aspect='auto', origin='lower',
-                         extent=[0, time_axis[-1], 20, 20000],
+                         extent=[0, time_axis[-1], freq_axis[0], freq_axis[-1]],
                          cmap='viridis', vmin=-60, vmax=0)
         ax1.set_title(f'Channel 1 Spectrogram (Microphone {self.mic_pair[0]})')
         ax1.set_ylabel('Frequency (Hz)')
         ax1.set_xlabel('Time (s)')
-        ax1.set_yscale('log')
-        ax1.set_ylim(20, 20000)
+        if freq_scale == 'log':
+            ax1.set_yscale('log')
+            ax1.set_ylim(20, 20000)
+        else:
+            ax1.set_ylim(0, freq_axis[-1])
         plt.colorbar(im1, ax=ax1, label='Magnitude (dBFS)')
 
         # Plot second channel spectrogram
         im2 = ax2.imshow(mag2_db, aspect='auto', origin='lower',
-                         extent=[0, time_axis[-1], 20, 20000],
+                         extent=[0, time_axis[-1], freq_axis[0], freq_axis[-1]],
                          cmap='viridis', vmin=-60, vmax=0)
         ax2.set_title(f'Channel 2 Spectrogram (Microphone {self.mic_pair[1]})')
         ax2.set_ylabel('Frequency (Hz)')
         ax2.set_xlabel('Time (s)')
-        ax2.set_yscale('log')
-        ax2.set_ylim(20, 20000)
+        if freq_scale == 'log':
+            ax2.set_yscale('log')
+            ax2.set_ylim(20, 20000)
+        else:
+            ax2.set_ylim(0, freq_axis[-1])
         plt.colorbar(im2, ax=ax2, label='Magnitude (dBFS)')
 
         plt.tight_layout()
