@@ -291,7 +291,7 @@ class Duet(object):
         # Check if we detected fewer sources than requested
         if est.shape[0] < self.n_sources:
             raise ValueError(f"Requested {self.n_sources} sources but only {est.shape[0]} were detected. "
-                           f"Reduce n_sources to {est.shape[0]} or adjust parameters to detect more sources.")
+                             f"Reduce n_sources to {est.shape[0]} or adjust parameters to detect more sources.")
 
         return est
 
@@ -905,8 +905,8 @@ class Duet(object):
         # Mark detected peaks
         if hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
             ax.scatter(self.delay_peak, self.sym_atn_peak,
-                        c='red', s=100, marker='x', linewidth=2,
-                        label='Detected Peaks')
+                       c='red', s=100, marker='x', linewidth=2,
+                       label='Detected Peaks')
             ax.legend()
 
         ax.set_xlabel('Delay (samples)')
@@ -930,11 +930,11 @@ if __name__ == "__main__":
     fs, x2 = sp.io.wavfile.read("Data/x2.wav")
     x = np.column_stack([x1, x2])  # Combine into stereo format (time_steps, 2)
     duet = Duet(x, n_sources=5, sample_rate=fs, attenuation_max=1.5,
-            delay_max=2.0)
+                delay_max=2.0)
 
     fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
     duet = Duet(x, n_sources=3, sample_rate=fs, attenuation_max=1.5,
-                delay_max=25) # microphones 7 inches apart = 23 samples
+                delay_max=25)  # microphones 7 inches apart = 23 samples
     estimates = duet()
     for i in range(duet.n_sources):
         sp.io.wavfile.write(f"output{i}.wav", duet.fs,
