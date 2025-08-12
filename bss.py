@@ -865,7 +865,7 @@ if __name__ == "__main__":
                             estimates[i, :]+0.05*duet.x1)
 
     # Plot the input spectrograms
-    duet.plot_spectrograms()
+    duet.plot_spectrograms(freq_scale="linear")
 
     # Plot the Gabor atoms scatter plot
     duet.plot_atn_delay_scatter(coloring='magnitude')
