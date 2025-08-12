@@ -803,7 +803,7 @@ class Duet(object):
                         ax.scatter(alpha_plot[source_mask], delta_plot[source_mask],
                                    s=2, alpha=0.3 + 0.7*mag_norm, label=f'Source {i+1}')
 
-            ax.legend()
+            ax.legend(loc='upper right')
             ax.set_title('Sources with Magnitude as Lightness')
 
         # Show detected peaks if requested
