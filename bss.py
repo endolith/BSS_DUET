@@ -198,7 +198,7 @@ class Duet(object):
     >>> duet.plot_atn_delay_scatter(coloring='classification')
 
     # Plot sources with magnitude as lightness (best for seeing sources)
-    >>> duet.plot_attenuation_delay_scatter(coloring='magnitude_by_source')
+    >>> duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
     # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
