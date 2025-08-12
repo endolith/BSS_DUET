@@ -286,7 +286,14 @@ class Duet(object):
         # (1) Create a binary mask (1 for each tf-point belonging to my source, 0 for others)
         # (2) Mask the spectrogram with the mask created in (1).
         # (3) Rebuild the original wave file from (2).
-        return self._build_masks(self.atn_peak, self.bestind)
+        est = self._build_masks(self.atn_peak, self.bestind)
+
+        # Check if we detected fewer sources than requested
+        if est.shape[0] < self.n_sources:
+            raise ValueError(f"Requested {self.n_sources} sources but only {est.shape[0]} were detected. "
+                           f"Reduce n_sources to {est.shape[0]} or adjust parameters to detect more sources.")
+
+        return est
 
     def _contruct_histogram(self, mic_pair):
         """
