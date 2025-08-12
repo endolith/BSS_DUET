@@ -858,11 +858,13 @@ class Duet(object):
 
 if __name__ == "__main__":
     # Load separate mono files and combine into stereo
-    fs, x1 = sp.io.wavfile.read("Data/x1.wav")
-    fs, x2 = sp.io.wavfile.read("Data/x2.wav")
-    x = np.column_stack([x1, x2])  # Combine into stereo format (time_steps, 2)
+    # fs, x1 = sp.io.wavfile.read("Data/x1.wav")
+    # fs, x2 = sp.io.wavfile.read("Data/x2.wav")
+    # x = np.column_stack([x1, x2])  # Combine into stereo format (time_steps, 2)
+
+    fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
     duet = Duet(x, n_sources=5, sample_rate=fs, attenuation_max=1.5,
-                delay_max=2.0)
+                delay_max=25) # microphones 7 inches apart = 23 samples
     estimates = duet()
     for i in range(duet.n_sources):
         sp.io.wavfile.write(f"output{i}.wav", duet.fs,
@@ -872,13 +874,13 @@ if __name__ == "__main__":
     duet.plot_spectrograms(freq_scale="linear")
 
     # Plot the Gabor atoms scatter plot
-    duet.plot_atn_delay_scatter(coloring='magnitude')
+    # duet.plot_atn_delay_scatter(coloring='magnitude')
 
     # Plot the source classification
-    duet.plot_atn_delay_scatter(coloring='classification')
+    # duet.plot_atn_delay_scatter(coloring='classification')
 
     # Plot sources with magnitude as lightness (best for seeing sources)
-    duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
+    # duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
     # Plot the attenuation-delay histogram
     duet.plot_atn_delay_hist()
