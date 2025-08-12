@@ -635,15 +635,20 @@ class Duet(object):
 
         # Create time and frequency axes
         time_axis = np.arange(self.tf1.shape[1]) * self._hop_length / self.fs
-        freq_axis = np.arange(self.tf1.shape[0]) * self.fs / self._nfft
+
+        # For two-sided spectrum, show only positive frequencies up to Nyquist
+        # The STFT returns [0, pos_freqs, neg_freqs] but we removed DC, so it's [pos_freqs, neg_freqs]
+        # For real signals, we only need positive frequencies up to fs/2
+        n_pos = self._nfft // 2  # Number of positive frequency bins
+        freq_axis = np.arange(1, n_pos + 1) * self.fs / self._nfft  # 1 to fs/2
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True,
                                        sharey=True)
 
-        # Normalize to full scale and convert to dBFS
-        max_val = max(np.max(np.abs(self.tf1)), np.max(np.abs(self.tf2)))
-        mag1_db = 20 * np.log10(np.abs(self.tf1) / max_val + 1e-10)
-        mag2_db = 20 * np.log10(np.abs(self.tf2) / max_val + 1e-10)
+        # Normalize to full scale and convert to dBFS (use only positive frequencies for display)
+        max_val = max(np.max(np.abs(self.tf1[:n_pos])), np.max(np.abs(self.tf2[:n_pos])))
+        mag1_db = 20 * np.log10(np.abs(self.tf1[:n_pos]) / max_val + 1e-10)
+        mag2_db = 20 * np.log10(np.abs(self.tf2[:n_pos]) / max_val + 1e-10)
 
         # Plot first channel spectrogram
         im1 = ax1.imshow(mag1_db, aspect='auto', origin='lower',
@@ -654,7 +659,7 @@ class Duet(object):
         ax1.set_xlabel('Time (s)')
         if freq_scale == 'log':
             ax1.set_yscale('log')
-            ax1.set_ylim(20, 20000)
+            ax1.set_ylim(20, freq_axis[-1])
         else:
             ax1.set_ylim(0, freq_axis[-1])
         plt.colorbar(im1, ax=ax1, label='Magnitude (dBFS)')
@@ -667,8 +672,7 @@ class Duet(object):
         ax2.set_ylabel('Frequency (Hz)')
         ax2.set_xlabel('Time (s)')
         if freq_scale == 'log':
-            ax2.set_yscale('log')
-            ax2.set_ylim(20, 20000)
+            ax2.set_ylim(20, freq_axis[-1])
         else:
             ax2.set_ylim(0, freq_axis[-1])
         plt.colorbar(im2, ax=ax2, label='Magnitude (dBFS)')
