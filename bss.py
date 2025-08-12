@@ -890,13 +890,17 @@ class Duet(object):
             vmax = None
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-        # Transpose Z so that delay is x-axis and attenuation is y-axis
-        # Z has shape (n_attenuation_bins, n_delay_bins)
-        Z_plot_transposed = Z_plot.T  # Now shape is (n_delay_bins, n_attenuation_bins)
-        im = ax.imshow(Z_plot_transposed, extent=[-self.delay_max, self.delay_max,
-                                                  -self.attenuation_max, self.attenuation_max],
-                        origin='lower', aspect='auto', cmap='viridis',
-                        vmin=vmin, vmax=vmax)
+        # Z has shape (n_attenuation_bins, n_delay_bins): rows -> attenuation (y), cols -> delay (x)
+        im = ax.imshow(
+            Z_plot,
+            extent=[-self.delay_max, self.delay_max,
+                    -self.attenuation_max, self.attenuation_max],
+            origin='lower',
+            aspect='auto',
+            cmap='viridis',
+            vmin=vmin,
+            vmax=vmax,
+        )
 
         # Mark detected peaks
         if hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
