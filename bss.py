@@ -863,17 +863,40 @@ class Duet(object):
         plt.tight_layout()
         plt.show()
 
-    def plot_atn_delay_hist_2d(self):
-        """Plot the attenuation-delay histogram as a 2D image plot (easier to interpret)."""
+    def plot_atn_delay_hist_2d(self, log_scale=False):
+        """
+        Plot the attenuation-delay histogram as a 2D image plot (easier to interpret).
+
+        Parameters
+        ----------
+        log_scale : bool, optional
+            Whether to use logarithmic scaling for better visibility of lower peaks.
+            Default is False.
+        """
         if self.norm_atn_delay_hist is None:
             raise RuntimeError("A weighted histogram should be computed first.")
 
         Z = self.norm_atn_delay_hist
 
+        # Apply log scaling if requested
+        if log_scale:
+            # Add small constant to avoid log(0)
+            Z_plot = np.log10(Z + 1e-10)
+            vmin = np.min(Z_plot)
+            vmax = np.max(Z_plot)
+        else:
+            Z_plot = Z
+            vmin = None
+            vmax = None
+
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-        im = ax.imshow(Z, extent=[-self.delay_max, self.delay_max,
-                                  -self.attenuation_max, self.attenuation_max],
-                        origin='lower', aspect='auto', cmap='viridis')
+        # Transpose Z so that delay is x-axis and attenuation is y-axis
+        # Z has shape (n_attenuation_bins, n_delay_bins)
+        Z_plot_transposed = Z_plot.T  # Now shape is (n_delay_bins, n_attenuation_bins)
+        im = ax.imshow(Z_plot_transposed, extent=[-self.delay_max, self.delay_max,
+                                                  -self.attenuation_max, self.attenuation_max],
+                        origin='lower', aspect='auto', cmap='viridis',
+                        vmin=vmin, vmax=vmax)
 
         # Mark detected peaks
         if hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
@@ -888,7 +911,10 @@ class Duet(object):
 
         # Add colorbar
         cbar = plt.colorbar(im, ax=ax)
-        cbar.set_label('Weighted Count')
+        if log_scale:
+            cbar.set_label('Log10(Weighted Count)')
+        else:
+            cbar.set_label('Weighted Count')
 
         plt.tight_layout()
         plt.show()
@@ -922,4 +948,4 @@ if __name__ == "__main__":
 
     # Plot the attenuation-delay histogram
     duet.plot_atn_delay_hist()
-    duet.plot_atn_delay_hist_2d()
+    duet.plot_atn_delay_hist_2d(log_scale=True)
