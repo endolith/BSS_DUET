@@ -965,7 +965,7 @@ if __name__ == "__main__":
                             estimates[i, :]+0.05*duet.x1)
 
     # Plot the input spectrograms
-    duet.plot_spectrograms(freq_scale="linear")
+    # duet.plot_spectrograms(freq_scale="linear")
 
     # Plot the Gabor atoms scatter plot
     # duet.plot_atn_delay_scatter(coloring='magnitude')
@@ -974,8 +974,8 @@ if __name__ == "__main__":
     # duet.plot_atn_delay_scatter(coloring='classification')
 
     # Plot sources with magnitude as lightness (best for seeing sources)
-    # duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
+    duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
     # Plot the attenuation-delay histogram
-    duet.plot_atn_delay_hist()
+    # duet.plot_atn_delay_hist()
     duet.plot_atn_delay_hist_2d(log_scale=True)
