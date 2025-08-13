@@ -835,6 +835,8 @@ class Duet(object):
                     path_effects=[pe.withStroke(linewidth=1.5, foreground='black')],
                     zorder=7,
                 )
+            # Ensure legend includes the detected peaks entry
+            ax.legend(loc='upper right')
 
         ax.set_xlabel('Symmetric Attenuation')
         ax.set_ylabel('Delay')
