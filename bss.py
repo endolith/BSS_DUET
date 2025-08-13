@@ -275,8 +275,8 @@ class Duet(object):
 
         # Find the location of peaks in the attenuation-delay plane
         self.sym_atn_peak, self.delay_peak = self._find_n_peaks(
-            self.norm_atn_delay_hist, n_peaks=self.n_sources, width=0.5,
-            prominence=5.0)
+            self.norm_atn_delay_hist, n_peaks=self.n_sources, width=None,
+            prominence=0.2)
 
         # Assign each time-frequency frame to the nearest peak in phase/amplitude
         # space. This partitions the spectrogram into sources (one peak per source)
@@ -315,9 +315,9 @@ class Duet(object):
         fmat : ndarray
             Frequency matrix, the ndarray must have the following format (t, f).
         """
-        # Dividing by maximum to normalize
-        self.x1 = self.x[:, mic_pair[0]] / np.iinfo(np.int16).max
-        self.x2 = self.x[:, mic_pair[1]] / np.iinfo(np.int16).max
+        # Assume input is already normalized to ±1 floats externally
+        self.x1 = self.x[:, mic_pair[0]].astype(np.float64)
+        self.x2 = self.x[:, mic_pair[1]].astype(np.float64)
 
         # time-frequency domain
         _, _, tf1 = sp.signal.stft(self.x1, fs=self.fs, window=self._awin,
