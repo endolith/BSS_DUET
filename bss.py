@@ -928,11 +928,14 @@ if __name__ == "__main__":
     # Load separate mono files and combine into stereo
     fs, x1 = sp.io.wavfile.read("Data/x1.wav")
     fs, x2 = sp.io.wavfile.read("Data/x2.wav")
+    x1 = x1.astype(np.float64) / np.iinfo(x1.dtype).max
+    x2 = x2.astype(np.float64) / np.iinfo(x2.dtype).max
     x = np.column_stack([x1, x2])  # Combine into stereo format (time_steps, 2)
     duet = Duet(x, n_sources=5, sample_rate=fs, attenuation_max=1.5,
                 delay_max=2.0)
 
     fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
+    x = x.astype(np.float64) / np.iinfo(x.dtype).max
     duet = Duet(x[:100000], n_sources=2, sample_rate=fs, attenuation_max=1.5,
                 delay_max=25)  # microphones 7 inches apart = 23 samples
 
