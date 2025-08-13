@@ -988,7 +988,8 @@ if __name__ == "__main__":
     x2 = x2.astype(np.float64) / np.iinfo(x2.dtype).max
     x = np.column_stack([x1, x2])  # Combine into stereo format (time_steps, 2)
     duet = Duet(x, n_sources=5, sample_rate=fs, attenuation_max=1.5,
-                delay_max=2.0)
+                delay_max=2.0,
+                assignment_mode="nearest")
 
     # fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
     # x = x.astype(np.float64) / np.iinfo(x.dtype).max
