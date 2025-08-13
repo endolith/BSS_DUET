@@ -753,7 +753,8 @@ class Duet(object):
             magnitude_db_plot = magnitude_db[mask]
 
             # Plot with color based on magnitude
-            scatter = ax.scatter(alpha_plot, delta_plot, c=magnitude_db_plot,
+            # Delay should be horizontal (x), symmetric attenuation vertical (y)
+            scatter = ax.scatter(delta_plot, alpha_plot, c=magnitude_db_plot,
                                  s=2, alpha=0.7, cmap='viridis',
                                  edgecolors='none', vmin=-40, vmax=0)
 
@@ -779,7 +780,7 @@ class Duet(object):
             for i in range(self.n_sources):
                 source_mask = classification_plot == (i + 1)
                 if np.any(source_mask):
-                    ax.scatter(alpha_plot[source_mask], delta_plot[source_mask],
+                    ax.scatter(delta_plot[source_mask], alpha_plot[source_mask],
                                s=2, alpha=0.7, label=f'Source {i+1}')
 
             ax.legend()
@@ -812,7 +813,7 @@ class Duet(object):
                     if len(source_mag) > 0:
                         mag_norm = (source_mag - source_mag.min()) / (source_mag.max() - source_mag.min() + 1e-10)
                         # Use default color with varying alpha based on magnitude
-                        ax.scatter(alpha_plot[source_mask], delta_plot[source_mask],
+                        ax.scatter(delta_plot[source_mask], alpha_plot[source_mask],
                                    s=2, alpha=0.3 + 0.7*mag_norm, label=f'Source {i+1}')
 
             ax.legend(loc='upper right')
@@ -821,16 +822,16 @@ class Duet(object):
         # Show detected peaks if requested
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
             # Draw a white outline X slightly larger under a black X for contrast
-            ax.scatter(self.sym_atn_peak, self.delay_peak,
+            ax.scatter(self.delay_peak, self.sym_atn_peak,
                        c='white', s=44, marker='x', linewidth=3.0,
                        label='_nolegend_', zorder=5)
-            ax.scatter(self.sym_atn_peak, self.delay_peak,
+            ax.scatter(self.delay_peak, self.sym_atn_peak,
                        c='black', s=36, marker='x', linewidth=1.6,
                        label='Detected Peaks', zorder=6)
             # Label peaks with indices matching output filenames (e.g., output0.wav)
-            for i, (a, d) in enumerate(zip(self.sym_atn_peak, self.delay_peak)):
+            for i, (d, a) in enumerate(zip(self.delay_peak, self.sym_atn_peak)):
                 ax.annotate(
-                    f"{i}", (a, d), textcoords="offset points",
+                    f"{i}", (d, a), textcoords="offset points",
                     xytext=(2, -6), ha='left', va='top', color='black', fontsize=9,
                     path_effects=[pe.withStroke(linewidth=2.0, foreground='white')],
                     zorder=7,
@@ -838,12 +839,12 @@ class Duet(object):
             # Ensure legend includes the detected peaks entry
             ax.legend(loc='upper right')
 
-        ax.set_xlabel('Symmetric Attenuation')
-        ax.set_ylabel('Delay')
+        ax.set_xlabel('Delay')
+        ax.set_ylabel('Symmetric Attenuation')
 
-        # Set axis limits to match histogram bounds
-        ax.set_xlim(-self.attenuation_max, self.attenuation_max)
-        ax.set_ylim(-self.delay_max, self.delay_max)
+        # Set axis limits to match histogram bounds (delay on x, attenuation on y)
+        ax.set_xlim(-self.delay_max, self.delay_max)
+        ax.set_ylim(-self.attenuation_max, self.attenuation_max)
 
         # Add grid
         ax.grid(True, alpha=0.3)
