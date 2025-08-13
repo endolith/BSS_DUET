@@ -935,6 +935,7 @@ if __name__ == "__main__":
     fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
     duet = Duet(x, n_sources=3, sample_rate=fs, attenuation_max=1.5,
                 delay_max=25)  # microphones 7 inches apart = 23 samples
+
     estimates = duet()
     for i in range(duet.n_sources):
         sp.io.wavfile.write(f"output{i}.wav", duet.fs,
