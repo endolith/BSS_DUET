@@ -822,7 +822,7 @@ class Duet(object):
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
             # Draw a white outline X slightly larger under a black X for contrast
             ax.scatter(self.sym_atn_peak, self.delay_peak,
-                       c='white', s=42, marker='x', linewidth=2.6,
+                       c='white', s=44, marker='x', linewidth=3.0,
                        label='_nolegend_', zorder=5)
             ax.scatter(self.sym_atn_peak, self.delay_peak,
                        c='black', s=36, marker='x', linewidth=1.6,
@@ -832,7 +832,7 @@ class Duet(object):
                 ax.annotate(
                     f"{i}", (a, d), textcoords="offset points",
                     xytext=(2, -6), ha='left', va='top', color='black', fontsize=9,
-                    path_effects=[pe.withStroke(linewidth=1.5, foreground='white')],
+                    path_effects=[pe.withStroke(linewidth=2.0, foreground='white')],
                     zorder=7,
                 )
             # Ensure legend includes the detected peaks entry
