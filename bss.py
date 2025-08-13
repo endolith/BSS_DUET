@@ -933,7 +933,7 @@ if __name__ == "__main__":
                 delay_max=2.0)
 
     fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
-    duet = Duet(x, n_sources=3, sample_rate=fs, attenuation_max=1.5,
+    duet = Duet(x[:100000], n_sources=2, sample_rate=fs, attenuation_max=1.5,
                 delay_max=25)  # microphones 7 inches apart = 23 samples
 
     estimates = duet()
@@ -955,4 +955,4 @@ if __name__ == "__main__":
 
     # Plot the attenuation-delay histogram
     duet.plot_atn_delay_hist()
-    duet.plot_atn_delay_hist_2d(log_scale=True)
+    duet.plot_atn_delay_hist_2d(log_scale=False)
