@@ -221,6 +221,8 @@ class Duet(object):
         p=1,
         q=0,
         assignment_mode='ml',
+        alpha_radius=None,
+        delta_radius=None,
     ):
         self.x = x
         self.n_sources = n_sources
@@ -235,9 +237,18 @@ class Duet(object):
         # Assignment of TF points to sources:
         # 'ml'      -> maximum-likelihood (reconstruction error) assignment (default)
         # 'nearest' -> Euclidean nearest-neighbor in (alpha, delta) space
-        if assignment_mode not in ('ml', 'nearest'):
-            raise ValueError("assignment_mode must be one of {'ml', 'nearest'}")
+        # 'radius'  -> keep only TF points within per-axis radii around each peak
+        #             (implemented as an elliptical neighborhood: (Δα/α_r)^2 + (Δδ/δ_r)^2 <= 1)
+        if assignment_mode not in ('ml', 'nearest', 'radius'):
+            raise ValueError("assignment_mode must be one of {'ml', 'nearest', 'radius'}")
         self.assignment_mode = assignment_mode
+        # Default radii as a fraction of configured bounds if not provided
+        self.alpha_radius = (
+            0.1 * self.attenuation_max if alpha_radius is None else float(alpha_radius)
+        )
+        self.delta_radius = (
+            0.1 * self.delay_max if delta_radius is None else float(delta_radius)
+        )
 
         self.x1 = None
         self.x2 = None
@@ -556,30 +567,69 @@ class Duet(object):
 
             return peaka, bestind
 
-        # Nearest-neighbor in (alpha, delta) space
-        # Only consider TF points yielding estimates in bounds; leave others unassigned (0)
-        alpha = self.symmetric_atn
-        delta = self.delay
-        in_bounds_mask = ((np.abs(alpha) < self.attenuation_max) &
-                          (np.abs(delta) < self.delay_max))
+        # Branch: Nearest-neighbor in (alpha, delta) space
+        elif self.assignment_mode == 'nearest':
+            # Only consider TF points yielding estimates in bounds; leave others unassigned (0)
+            alpha = self.symmetric_atn
+            delta = self.delay
+            in_bounds_mask = ((np.abs(alpha) < self.attenuation_max) &
+                              (np.abs(delta) < self.delay_max))
 
-        # Compute squared Euclidean distance to each peak for all TF points
-        # Shapes: peaks -> (n_peaks,), fields -> (F, T)
-        # Broadcast to (n_peaks, F, T)
-        alpha_diff = alpha[None, ...] - sym_atn_peak[:, None, None]
-        delta_diff = delta[None, ...] - self.delay_peak[:, None, None]
-        distances_sq = alpha_diff**2 + delta_diff**2
+            # Compute squared Euclidean distance to each peak for all TF points
+            # Shapes: peaks -> (n_peaks,), fields -> (F, T)
+            # Broadcast to (n_peaks, F, T)
+            alpha_diff = alpha[None, ...] - sym_atn_peak[:, None, None]
+            delta_diff = delta[None, ...] - self.delay_peak[:, None, None]
+            distances_sq = alpha_diff**2 + delta_diff**2
 
-        # Argmin over peaks dimension → indices in [0, n_peaks-1]
-        nearest_peak_indices = np.argmin(distances_sq, axis=0)
+            # Argmin over peaks dimension → indices in [0, n_peaks-1]
+            nearest_peak_indices = np.argmin(distances_sq, axis=0)
 
-        # Initialize all as unassigned (0), then fill in-bounds with 1-based indices
-        bestind = np.zeros(self.tf1.shape)
-        # Create a temporary full map (1-based)
-        tmp_full_assignment = nearest_peak_indices + 1
-        np.place(bestind, in_bounds_mask, tmp_full_assignment[in_bounds_mask])
+            # Initialize all as unassigned (0), then fill in-bounds with 1-based indices
+            bestind = np.zeros(self.tf1.shape)
+            # Create a temporary full map (1-based)
+            tmp_full_assignment = nearest_peak_indices + 1
+            np.place(bestind, in_bounds_mask, tmp_full_assignment[in_bounds_mask])
 
-        return peaka, bestind
+            return peaka, bestind
+
+        # Branch: Radius-based assignment in (alpha, delta) with per-axis radii
+        elif self.assignment_mode == 'radius':
+            # Elliptical neighborhood: keep TF points where (Δα/α_r)^2 + (Δδ/δ_r)^2 <= 1 for any peak.
+            # For overlaps, choose the peak with the smallest normalized squared distance.
+            # Validate radii
+            if not (self.alpha_radius > 0 and self.delta_radius > 0):
+                raise ValueError("alpha_radius and delta_radius must be positive for 'radius' assignment_mode")
+
+            alpha = self.symmetric_atn
+            delta = self.delay
+            in_bounds_mask = ((np.abs(alpha) < self.attenuation_max) &
+                            (np.abs(delta) < self.delay_max))
+
+            # Differences to peaks
+            alpha_diff = alpha[None, ...] - sym_atn_peak[:, None, None]
+            delta_diff = delta[None, ...] - self.delay_peak[:, None, None]
+
+            # Normalized squared distances for membership and tie-breaking; set to inf outside ellipse
+            norm_alpha = alpha_diff / self.alpha_radius
+            norm_delta = delta_diff / self.delta_radius
+            norm_dist_sq = norm_alpha**2 + norm_delta**2
+            in_ellipse = norm_dist_sq <= 1.0
+            norm_dist_sq = np.where(in_ellipse, norm_dist_sq, np.inf)
+
+            # Choose minimal normalized distance among peaks
+            best_peak_indices = np.argmin(norm_dist_sq, axis=0)  # shape: (F, T)
+            min_norm_dist = np.take_along_axis(norm_dist_sq, best_peak_indices[None, ...], axis=0)[0]
+
+            # Assign only where inside at least one rectangle and in overall bounds
+            assign_mask = np.isfinite(min_norm_dist) & in_bounds_mask
+            bestind = np.zeros(self.tf1.shape)
+            assignment_1based = best_peak_indices + 1
+            np.place(bestind, assign_mask, assignment_1based[assign_mask])
+
+            return peaka, bestind
+        else:
+            raise ValueError(f"Invalid assignment_mode: {self.assignment_mode}")
 
     def _build_masks(self, atn_peak, bestind):
         """
@@ -989,7 +1039,7 @@ if __name__ == "__main__":
     x = np.column_stack([x1, x2])  # Combine into stereo format (time_steps, 2)
     duet = Duet(x, n_sources=5, sample_rate=fs, attenuation_max=1.5,
                 delay_max=2.0,
-                assignment_mode="nearest")
+                assignment_mode="radius", delta_radius=0.5, alpha_radius=0.5)
 
     # fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
     # x = x.astype(np.float64) / np.iinfo(x.dtype).max
