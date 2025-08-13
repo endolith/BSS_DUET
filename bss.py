@@ -220,6 +220,7 @@ class Duet(object):
         n_delay_bins=50,
         p=1,
         q=0,
+        assignment_mode='ml',
     ):
         self.x = x
         self.n_sources = n_sources
@@ -231,6 +232,12 @@ class Duet(object):
         self.n_delay_bins = n_delay_bins
         self.p = p
         self.q = q
+        # Assignment of TF points to sources:
+        # 'ml'      -> maximum-likelihood (reconstruction error) assignment (default)
+        # 'nearest' -> Euclidean nearest-neighbor in (alpha, delta) space
+        if assignment_mode not in ('ml', 'nearest'):
+            raise ValueError("assignment_mode must be one of {'ml', 'nearest'}")
+        self.assignment_mode = assignment_mode
 
         self.x1 = None
         self.x2 = None
@@ -532,17 +539,45 @@ class Duet(object):
         """
         # convert the symmetric attenuation back to attenuation
         peaka = (sym_atn_peak + np.sqrt(np.square(sym_atn_peak) + 4)) / 2
-        bestsofar = float("inf") * np.ones(self.tf1.shape)
-        bestind = np.zeros(self.tf1.shape)
 
-        for i in range(sym_atn_peak.size):
-            score = (
-                np.abs(peaka[i] * np.exp(-1j*self.fmat*self.delay_peak[i]) * self.tf1 - self.tf2) ** 2
-            ) / (1 + peaka[i] ** 2)
-            mask = score < bestsofar
-            s_mask = score[mask]
-            np.place(bestind, mask, i+1)
-            np.place(bestsofar, mask, s_mask)
+        if self.assignment_mode == 'ml':
+            # Maximum-likelihood (reconstruction error) assignment
+            bestsofar = float("inf") * np.ones(self.tf1.shape)
+            bestind = np.zeros(self.tf1.shape)
+
+            for i in range(sym_atn_peak.size):
+                score = (
+                    np.abs(peaka[i] * np.exp(-1j*self.fmat*self.delay_peak[i]) * self.tf1 - self.tf2) ** 2
+                ) / (1 + peaka[i] ** 2)
+                mask = score < bestsofar
+                s_mask = score[mask]
+                np.place(bestind, mask, i+1)
+                np.place(bestsofar, mask, s_mask)
+
+            return peaka, bestind
+
+        # Nearest-neighbor in (alpha, delta) space
+        # Only consider TF points yielding estimates in bounds; leave others unassigned (0)
+        alpha = self.symmetric_atn
+        delta = self.delay
+        in_bounds_mask = ((np.abs(alpha) < self.attenuation_max) &
+                          (np.abs(delta) < self.delay_max))
+
+        # Compute squared Euclidean distance to each peak for all TF points
+        # Shapes: peaks -> (n_peaks,), fields -> (F, T)
+        # Broadcast to (n_peaks, F, T)
+        alpha_diff = alpha[None, ...] - sym_atn_peak[:, None, None]
+        delta_diff = delta[None, ...] - self.delay_peak[:, None, None]
+        distances_sq = alpha_diff**2 + delta_diff**2
+
+        # Argmin over peaks dimension → indices in [0, n_peaks-1]
+        nearest_peak_indices = np.argmin(distances_sq, axis=0)
+
+        # Initialize all as unassigned (0), then fill in-bounds with 1-based indices
+        bestind = np.zeros(self.tf1.shape)
+        # Create a temporary full map (1-based)
+        tmp_full_assignment = nearest_peak_indices + 1
+        np.place(bestind, in_bounds_mask, tmp_full_assignment[in_bounds_mask])
 
         return peaka, bestind
 
