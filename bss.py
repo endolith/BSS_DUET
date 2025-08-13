@@ -820,19 +820,19 @@ class Duet(object):
 
         # Show detected peaks if requested
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
-            # Draw a black outline X slightly larger under a white X for contrast
+            # Draw a white outline X slightly larger under a black X for contrast
             ax.scatter(self.sym_atn_peak, self.delay_peak,
-                       c='black', s=42, marker='x', linewidth=2.6,
+                       c='white', s=42, marker='x', linewidth=2.6,
                        label='_nolegend_', zorder=5)
             ax.scatter(self.sym_atn_peak, self.delay_peak,
-                       c='white', s=36, marker='x', linewidth=1.6,
+                       c='black', s=36, marker='x', linewidth=1.6,
                        label='Detected Peaks', zorder=6)
             # Label peaks with indices matching output filenames (e.g., output0.wav)
             for i, (a, d) in enumerate(zip(self.sym_atn_peak, self.delay_peak)):
                 ax.annotate(
                     f"{i}", (a, d), textcoords="offset points",
-                    xytext=(2, -6), ha='left', va='top', color='white', fontsize=9,
-                    path_effects=[pe.withStroke(linewidth=1.5, foreground='black')],
+                    xytext=(2, -6), ha='left', va='top', color='black', fontsize=9,
+                    path_effects=[pe.withStroke(linewidth=1.5, foreground='white')],
                     zorder=7,
                 )
             # Ensure legend includes the detected peaks entry
