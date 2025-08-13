@@ -820,8 +820,13 @@ class Duet(object):
         # Show detected peaks if requested
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
             ax.scatter(self.sym_atn_peak, self.delay_peak,
-                       c='red', s=100, marker='x', linewidth=2,
+                       c='red', s=36, marker='x', linewidth=1.5,
                        label='Detected Peaks')
+            # Label peaks with indices matching output filenames (e.g., output0.wav)
+            for i, (a, d) in enumerate(zip(self.sym_atn_peak, self.delay_peak)):
+                ax.annotate(f"{i}", (a, d), textcoords="offset points",
+                            xytext=(2, -6), ha='left', va='top',
+                            color='red', fontsize=9)
 
         ax.set_xlabel('Symmetric Attenuation')
         ax.set_ylabel('Delay')
@@ -905,8 +910,13 @@ class Duet(object):
         # Mark detected peaks
         if hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
             ax.scatter(self.delay_peak, self.sym_atn_peak,
-                       c='red', s=100, marker='x', linewidth=2,
+                       c='red', s=36, marker='x', linewidth=1.5,
                        label='Detected Peaks')
+            # Label peaks with indices matching output filenames (e.g., output0.wav)
+            for i, (d, a) in enumerate(zip(self.delay_peak, self.sym_atn_peak)):
+                ax.annotate(f"{i}", (d, a), textcoords="offset points",
+                            xytext=(2, -6), ha='left', va='top',
+                            color='red', fontsize=9)
             ax.legend()
 
         ax.set_xlabel('Delay (samples)')
