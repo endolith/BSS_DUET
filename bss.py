@@ -992,11 +992,12 @@ class Duet(object):
             n_pos = self._nfft // 2  # Number of positive frequency bins
             freq_axis = np.arange(1, n_pos + 1) * self.fs / self._nfft  # 1 to fs/2
 
-            # Create frequency array matching the exact shape of the data
-            # Use the same approach as the magnitude coloring to ensure consistency
-            freq_log = np.log10(np.repeat(freq_axis, self.tf1.shape[1]))
+            # Create frequency array matching the exact shape of symmetric_atn and delay
+            # These arrays determine the actual number of points we're plotting
+            freq_log = np.log10(np.repeat(freq_axis, self.symmetric_atn.shape[1]))
 
             # Filter out low-magnitude points (keep points above -40 dB)
+            # Use the same magnitude calculation as other coloring options
             mag1 = np.abs(self.tf1).flatten()
             mag2 = np.abs(self.tf2).flatten()
             magnitude = np.sqrt(mag1 * mag2)
