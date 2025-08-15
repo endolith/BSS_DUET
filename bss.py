@@ -176,6 +176,14 @@ class Duet(object):
         Assignment mode for TF points to sources. One of {'ml', 'nearest', 'radius'}.
         'ml' -> maximum-likelihood (reconstruction error) assignment (default)
         'nearest' -> Euclidean nearest-neighbor in (alpha, delta) space
+        'radius' -> keep only TF points within per-axis radii around each peak
+        (implemented as an elliptical neighborhood: (Δα/α_r)^2 + (Δδ/δ_r)^2 <= 1)
+    alpha_radius : float, optional
+        Radius for alpha (attenuation) axis when using 'radius' assignment mode.
+        Default is 0.1 * attenuation_max.
+    delta_radius : float, optional
+        Radius for delta (delay) axis when using 'radius' assignment mode.
+        Default is 0.1 * delay_max.
 
     Examples
     --------
