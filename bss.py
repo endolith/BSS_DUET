@@ -969,7 +969,7 @@ class Duet(object):
                 # Create a dummy scatter custom colorbar showing alpha values
                 dummy_scatter = ax.scatter([], [], c=[], cmap=alpha_cmap, vmin=MAGNITUDE_THRESHOLD_DB, vmax=0)
                 cbar = plt.colorbar(dummy_scatter, ax=ax)
-                cbar.set_label('Magnitude (dB) → Alpha')
+                cbar.set_label('Magnitude (dBFS) → Alpha')
 
                 # Calculate ticks based on actual magnitude range
                 mag_range = 0 - MAGNITUDE_THRESHOLD_DB
