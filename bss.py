@@ -1185,6 +1185,9 @@ if __name__ == "__main__":
     # Plot sources with magnitude as lightness (best for seeing sources)
     duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
+    # Plot the Gabor atoms scatter plot colored by frequency
+    duet.plot_atn_delay_scatter(coloring='frequency')
+
     # Plot the attenuation-delay histogram
     # duet.plot_atn_delay_hist()
     duet.plot_atn_delay_hist_2d(log_scale=False)
