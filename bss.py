@@ -186,10 +186,11 @@ class Duet(object):
         Default is 0.1 * delay_max.
     manual_peaks : tuple, optional
         If provided, use manually specified peaks instead of automatic peak finding.
-        Should be a tuple of (sym_atn_peaks, delay_peaks) where each is an array
+        Should be a tuple of (α_peaks, δ_peaks) where each is an array
         of length n_sources. This disables automatic peak finding.
-        Note: sym_atn_peaks should be in range [-attenuation_max, +attenuation_max]
-        and delay_peaks should be in range [-delay_max, +delay_max] (in samples).
+        Note: α_peaks (symmetric attenuation) should be in range [-attenuation_max, +attenuation_max]
+        and δ_peaks (delay) should be in range [-delay_max, +delay_max] (in samples).
+        The symmetric attenuation α = a - 1/a where a is the relative attenuation factor.
 
     Examples
     --------
@@ -226,11 +227,11 @@ class Duet(object):
     >>> duet.plot_atn_delay_hist()
 
     # Example with manual peaks:
-    >>> # Define manual peaks: (sym_atn_peaks, delay_peaks)
-    >>> manual_sym_atn = np.array([0.2, -0.1, 0.3, -0.2, 0.1])
-    >>> manual_delay = np.array([1.5, -0.8, 2.1, -1.2, 0.5])
+    >>> # Define manual peaks: (α_peaks, δ_peaks) where α = a - 1/a
+    >>> manual_alpha = np.array([0.2, -0.1, 0.3, -0.2, 0.1])
+    >>> manual_delta = np.array([1.5, -0.8, 2.1, -1.2, 0.5])
     >>> duet_manual = Duet(x, n_sources=5, sample_rate=fs,
-    ...                    manual_peaks=(manual_sym_atn, manual_delay))
+    ...                    manual_peaks=(manual_alpha, manual_delta))
     >>> estimates_manual = duet_manual()
     """
 
@@ -968,8 +969,8 @@ class Duet(object):
             # Ensure legend includes the detected peaks entry
             ax.legend(loc='upper right')
 
-        ax.set_xlabel('Delay')
-        ax.set_ylabel('Symmetric Attenuation')
+        ax.set_xlabel('Delay (δ)')
+        ax.set_ylabel('Symmetric Attenuation (α)')
 
         # Set axis limits to match histogram bounds (delay on x, attenuation on y)
         ax.set_xlim(-self.delay_max, self.delay_max)
@@ -1002,8 +1003,8 @@ class Duet(object):
         ax.contour(X, Y, Z, zdir='z', offset=Z.min()-Z.max())
         ax.set_zlim(Z.min()-Z.max(), Z.max()*1.5)
         ax.tick_params(labelsize="large")
-        plt.xlabel("Delay", fontsize="xx-large")
-        plt.ylabel("Attenuation", fontsize="xx-large")
+        plt.xlabel("Delay (δ)", fontsize="xx-large")
+        plt.ylabel("Attenuation (α)", fontsize="xx-large")
 
         plt.tight_layout()
         plt.show()
@@ -1059,8 +1060,8 @@ class Duet(object):
                             color='red', fontsize=9)
             ax.legend()
 
-        ax.set_xlabel('Delay (samples)')
-        ax.set_ylabel('Symmetric Attenuation')
+        ax.set_xlabel('Delay (δ, samples)')
+        ax.set_ylabel('Symmetric Attenuation (α)')
         ax.set_title('Attenuation-Delay Histogram')
 
         # Add colorbar
