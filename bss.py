@@ -861,7 +861,8 @@ class Duet(object):
         ----------
         coloring : str, optional
             Coloring scheme: 'magnitude' (dB magnitude), 'classification' (by source),
-            or 'magnitude_by_source' (source colors with magnitude as lightness)
+            'magnitude_by_source' (source colors with magnitude as lightness), or
+            'frequency' (colored by frequency in log space)
         show_peaks : bool, optional
             Whether to show detected peaks as red X markers
         """
@@ -984,6 +985,39 @@ class Duet(object):
 
             ax.legend(loc='upper right')
             ax.set_title('Sources with Magnitude as Lightness')
+
+        elif coloring == 'frequency':
+            # Get the frequency values for each time-frequency point
+            # Create frequency axis (same as in plot_spectrograms)
+            n_pos = self._nfft // 2  # Number of positive frequency bins
+            freq_axis = np.arange(1, n_pos + 1) * self.fs / self._nfft  # 1 to fs/2
+
+            # Create frequency array matching the shape of tf1/tf2
+            freq_array = np.tile(freq_axis[:, np.newaxis], (1, self.tf1.shape[1]))
+            freq_log = np.log10(freq_array.flatten())
+
+            # Filter out low-magnitude points (keep points above -40 dB)
+            mag1 = np.abs(self.tf1).flatten()
+            mag2 = np.abs(self.tf2).flatten()
+            magnitude = np.sqrt(mag1 * mag2)
+            magnitude_db = 20 * np.log10(magnitude + 1e-10)
+            mask = magnitude_db > -40
+
+            alpha_plot = alpha[mask]
+            delta_plot = delta[mask]
+            freq_log_plot = freq_log[mask]
+
+            # Plot with color based on log frequency
+            scatter = ax.scatter(delta_plot, alpha_plot, c=freq_log_plot,
+                               s=2, alpha=0.7, cmap='viridis',
+                               edgecolors='none')
+
+            # Add colorbar
+            cbar = plt.colorbar(scatter, ax=ax)
+            cbar.set_label('Log Frequency (log₁₀ Hz)')
+            ax.set_title('Gabor Atoms in Attenuation-Delay Space (Colored by Log Frequency)')
+        else:
+            raise ValueError(f"Invalid coloring option: {coloring}")
 
         # Show detected peaks if requested
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
