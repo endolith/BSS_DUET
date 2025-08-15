@@ -172,6 +172,10 @@ class Duet(object):
         default is 1.
     q : int, optional
         Weight the histogram with the delay estimator, default is 0.
+    assignment_mode : str, optional
+        Assignment mode for TF points to sources. One of {'ml', 'nearest', 'radius'}.
+        'ml' -> maximum-likelihood (reconstruction error) assignment (default)
+        'nearest' -> Euclidean nearest-neighbor in (alpha, delta) space
 
     Examples
     --------
