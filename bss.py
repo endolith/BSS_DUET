@@ -186,10 +186,10 @@ class Duet(object):
         Default is 0.1 * delay_max.
     manual_peaks : tuple, optional
         If provided, use manually specified peaks instead of automatic peak finding.
-        Should be a tuple of (α_peaks, δ_peaks) where each is array_like
+        Should be a tuple of (δ_peaks, α_peaks) where each is array_like
         of length n_sources. This disables automatic peak finding.
-        Note: α_peaks (symmetric attenuation) should be in range [-attenuation_max, +attenuation_max]
-        and δ_peaks (delay) should be in range [-delay_max, +delay_max] (in samples).
+        Note: δ_peaks (delay) should be in range [-delay_max, +delay_max] (in samples)
+        and α_peaks (symmetric attenuation) should be in range [-attenuation_max, +attenuation_max].
         The symmetric attenuation α = a - 1/a where a is the relative attenuation factor.
 
     Examples
@@ -227,11 +227,11 @@ class Duet(object):
     >>> duet.plot_atn_delay_hist()
 
     # Example with manual peaks:
-    >>> # Define manual peaks: (α_peaks, δ_peaks) where α = a - 1/a
-    >>> manual_alpha = np.array([0.2, -0.1, 0.3, -0.2, 0.1])
+    >>> # Define manual peaks: (δ_peaks, α_peaks) where α = a - 1/a
     >>> manual_delta = np.array([1.5, -0.8, 2.1, -1.2, 0.5])
+    >>> manual_alpha = np.array([0.2, -0.1, 0.3, -0.2, 0.1])
     >>> duet_manual = Duet(x, n_sources=5, sample_rate=fs,
-    ...                    manual_peaks=(manual_alpha, manual_delta))
+    ...                    manual_peaks=(manual_delta, manual_alpha))
     >>> estimates_manual = duet_manual()
     """
 
@@ -274,14 +274,14 @@ class Duet(object):
         # Handle manual peaks if provided
         if manual_peaks is not None:
             if not isinstance(manual_peaks, tuple) or len(manual_peaks) != 2:
-                raise ValueError("manual_peaks must be a tuple of (sym_atn_peaks, delay_peaks)")
-            sym_atn_peaks, delay_peaks = manual_peaks
+                raise ValueError("manual_peaks must be a tuple of (δ_peaks, α_peaks)")
+            delay_peaks, sym_atn_peaks = manual_peaks
 
             # Convert to numpy arrays if they aren't already (accepts array_like)
-            sym_atn_peaks = np.asarray(sym_atn_peaks)
             delay_peaks = np.asarray(delay_peaks)
+            sym_atn_peaks = np.asarray(sym_atn_peaks)
 
-            if len(sym_atn_peaks) != n_sources or len(delay_peaks) != n_sources:
+            if len(delay_peaks) != n_sources or len(sym_atn_peaks) != n_sources:
                 raise ValueError(f"manual_peaks must contain exactly {n_sources} peaks")
             self.manual_peaks = (sym_atn_peaks, delay_peaks)
         else:
@@ -1099,8 +1099,8 @@ if __name__ == "__main__":
                 delay_max=25,  # microphones 7 inches apart = 23 samples
                 # assignment_mode="nearest",
                 assignment_mode="radius", delta_radius=5, alpha_radius=0.5,
-                # (α_peaks, δ_peaks)
-                manual_peaks=([0.26470588, 0.26470588], [-1.53061224,  6.63265306]),
+                # (δ_peaks, α_peaks)
+                manual_peaks=([-1.53061224,  6.63265306], [0.26470588, 0.26470588]),
                 )
 
     estimates = duet()
