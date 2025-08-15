@@ -186,7 +186,7 @@ class Duet(object):
         Default is 0.1 * delay_max.
     manual_peaks : tuple, optional
         If provided, use manually specified peaks instead of automatic peak finding.
-        Should be a tuple of (α_peaks, δ_peaks) where each is an array
+        Should be a tuple of (α_peaks, δ_peaks) where each is array_like
         of length n_sources. This disables automatic peak finding.
         Note: α_peaks (symmetric attenuation) should be in range [-attenuation_max, +attenuation_max]
         and δ_peaks (delay) should be in range [-delay_max, +delay_max] (in samples).
@@ -276,9 +276,14 @@ class Duet(object):
             if not isinstance(manual_peaks, tuple) or len(manual_peaks) != 2:
                 raise ValueError("manual_peaks must be a tuple of (sym_atn_peaks, delay_peaks)")
             sym_atn_peaks, delay_peaks = manual_peaks
+
+            # Convert to numpy arrays if they aren't already (accepts array_like)
+            sym_atn_peaks = np.asarray(sym_atn_peaks)
+            delay_peaks = np.asarray(delay_peaks)
+
             if len(sym_atn_peaks) != n_sources or len(delay_peaks) != n_sources:
                 raise ValueError(f"manual_peaks must contain exactly {n_sources} peaks")
-            self.manual_peaks = manual_peaks
+            self.manual_peaks = (sym_atn_peaks, delay_peaks)
         else:
             self.manual_peaks = None
 
