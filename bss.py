@@ -1094,7 +1094,8 @@ if __name__ == "__main__":
                 delay_max=25,  # microphones 7 inches apart = 23 samples
                 # assignment_mode="nearest",
                 assignment_mode="radius", delta_radius=5, alpha_radius=0.5,
-                manual_peaks=(np.array([0.2, -0.1]), np.array([1.5, -0.8])),  # (α_peaks, δ_peaks)
+                # (α_peaks, δ_peaks)
+                manual_peaks=([0.26470588, 0.26470588], [-1.53061224,  6.63265306]),
                 )
 
     estimates = duet()
@@ -1116,4 +1117,4 @@ if __name__ == "__main__":
 
     # Plot the attenuation-delay histogram
     # duet.plot_atn_delay_hist()
-    duet.plot_atn_delay_hist_2d(log_scale=True)
+    duet.plot_atn_delay_hist_2d(log_scale=False)
