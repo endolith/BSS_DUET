@@ -940,6 +940,7 @@ class Duet(object):
             magnitude_db_plot = magnitude_db[mask]
 
             # Plot each source with magnitude as lightness
+            scatter_objects = []  # Store scatter objects for colorbar
             for i in range(self.n_sources):
                 source_mask = classification_plot == (i + 1)
                 if np.any(source_mask):
@@ -948,8 +949,28 @@ class Duet(object):
                     if len(source_mag) > 0:
                         mag_norm = (source_mag - source_mag.min()) / (source_mag.max() - source_mag.min() + 1e-10)
                         # Use default color with varying alpha based on magnitude
-                        ax.scatter(delta_plot[source_mask], alpha_plot[source_mask],
+                        scatter = ax.scatter(delta_plot[source_mask], alpha_plot[source_mask],
                                    s=2, alpha=0.3 + 0.7*mag_norm, label=f'Source {i+1}')
+                        scatter_objects.append(scatter)
+
+            # Create a colorbar showing the alpha (magnitude) scale
+            if scatter_objects:
+                # Create a custom colorbar showing alpha values
+                from matplotlib.patches import Rectangle
+                from matplotlib.colors import LinearSegmentedColormap
+
+                # Create a custom colormap that shows transparency levels
+                colors = [(0, 0, 0, 0.3), (0, 0, 0, 1.0)]  # From transparent to opaque
+                alpha_cmap = LinearSegmentedColormap.from_list('alpha', colors, N=256)
+
+                # Create a dummy scatter for the colorbar
+                dummy_scatter = ax.scatter([], [], c=[], cmap=alpha_cmap, vmin=-40, vmax=0)
+                cbar = plt.colorbar(dummy_scatter, ax=ax)
+                cbar.set_label('Magnitude (dB) → Alpha')
+                cbar.set_ticks([-40, -30, -20, -10, 0])
+                cbar.set_ticklabels(['-40 dB', '-30 dB', '-20 dB', '-10 dB', '0 dB'])
+                # Remove the dummy scatter
+                dummy_scatter.remove()
 
             ax.legend(loc='upper right')
             ax.set_title('Sources with Magnitude as Lightness')
