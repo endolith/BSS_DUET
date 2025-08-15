@@ -5,11 +5,13 @@ from functools import wraps
 from pathlib import Path
 from time import strftime
 
-import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.gridspec import GridSpec
+from matplotlib.patches import Rectangle
 from scipy.signal import convolve2d, find_peaks
 
 from find_peaks import find_peak_indices
