@@ -1013,23 +1013,19 @@ class Duet(object):
                 freq_matrix[n_pos:n_pos+len(neg_freqs), :] = neg_freqs[:, None]
 
             # Flatten and compute log frequency
-            frequency = freq_matrix.flatten()
+            frequency = freq_matrix.flatten().real  # Ensure real values
             log_frequency = np.log10(frequency + 1e-10)  # Add small value to avoid log(0)
 
-                        # Filter out low-frequency components (below 20 Hz for better visualization)
+            # Filter out low-frequency components (below 20 Hz for better visualization)
             mask = frequency > 20
             alpha_plot = alpha[mask].real  # Ensure real values
             delta_plot = delta[mask].real  # Ensure real values
             log_freq_plot = log_frequency[mask].real  # Ensure real values
 
-            # Determine actual frequency range in the data
-            min_freq = np.min(frequency[mask]) if np.any(mask) else 20
-            max_freq = np.max(frequency[mask]) if np.any(mask) else self.fs / 2
+            # Define frequency range for colorbar
+            max_freq = float(self.fs / 2)  # Ensure real number
 
-            print(f"Frequency range in data: {min_freq:.1f} Hz to {max_freq:.1f} Hz")
-            print(f"Log frequency range: {np.log10(min_freq):.3f} to {np.log10(max_freq):.3f}")
-
-            # Plot with color based on log frequency, explicitly set vmin/vmax
+            # Plot with color based on log frequency
             scatter = ax.scatter(delta_plot, alpha_plot, c=log_freq_plot,
                                  s=2, alpha=0.7, cmap='magma',
                                  edgecolors='none',
@@ -1041,10 +1037,8 @@ class Duet(object):
 
             # Create custom colorbar ticks showing actual frequencies
             freq_ticks = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
-            # Filter ticks to valid range but ensure we include 20 Hz
+            # Filter ticks to valid range
             freq_ticks = [f for f in freq_ticks if f <= max_freq]
-            if 20 not in freq_ticks:
-                freq_ticks = [20] + freq_ticks
             log_freq_ticks = [np.log10(f) for f in freq_ticks]
 
             # Set colorbar ticks
