@@ -224,6 +224,9 @@ class Duet(object):
     # Plot sources with magnitude as lightness (best for seeing sources)
     >>> duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
+    # Plot colored by log frequency
+    >>> duet.plot_atn_delay_scatter(coloring='log_frequency')
+
     # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
 
@@ -861,8 +864,8 @@ class Duet(object):
         ----------
         coloring : str, optional
             Coloring scheme: 'magnitude' (dB magnitude), 'classification' (by source),
-            'magnitude_by_source' (source colors with magnitude as lightness), or
-            'frequency' (colored by frequency in log space)
+            'magnitude_by_source' (source colors with magnitude as lightness),
+            or 'log_frequency' (log10 frequency)
         show_peaks : bool, optional
             Whether to show detected peaks as red X markers
         """
@@ -986,39 +989,60 @@ class Duet(object):
             ax.legend(loc='upper right')
             ax.set_title('Sources with Magnitude as Lightness')
 
-        elif coloring == 'frequency':
-            # Get the frequency values for each time-frequency point
-            # Create frequency axis (same as in plot_spectrograms)
-            n_pos = self._nfft // 2  # Number of positive frequency bins
+        elif coloring == 'log_frequency':
+            # Create frequency values for each time-frequency point
+            # For two-sided spectrum, we only use positive frequencies for display
+            n_pos = self._nfft // 2  # Number of positive frequency bins (excluding DC)
             freq_axis = np.arange(1, n_pos + 1) * self.fs / self._nfft  # 1 to fs/2
 
-            # Create frequency array that matches the flattened shape of symmetric_atn and delay
-            # The frequency array should have the same shape as alpha and delta
-            freq_log = np.log10(np.tile(freq_axis[:, np.newaxis], (1, self.symmetric_atn.shape[1])).flatten())
+            # Create frequency matrix for all TF points (matching the shape of tf1/tf2)
+            # tf1/tf2 have shape (n_fft-1, n_time) since DC was removed
+            # We need to map frequency indices to actual frequencies
+            freq_matrix = np.zeros_like(self.tf1)
 
-            # Filter out low-magnitude points (keep points above -40 dB)
-            # Use the same magnitude calculation as other coloring options
-            mag1 = np.abs(self.tf1).flatten()
-            mag2 = np.abs(self.tf2).flatten()
-            magnitude = np.sqrt(mag1 * mag2)
-            magnitude_db = 20 * np.log10(magnitude + 1e-10)
-            mask = magnitude_db > -40
+            # Fill positive frequency bins (first half)
+            freq_matrix[:n_pos, :] = freq_axis[:, None]
 
+            # Fill negative frequency bins (second half) - mirror of positive frequencies
+            # For real signals, negative frequencies have same magnitude as positive
+            if freq_matrix.shape[0] > n_pos:
+                # Negative frequencies: reverse order of positive frequencies (excluding DC and Nyquist)
+                neg_freqs = freq_axis[::-1]
+                if len(neg_freqs) > freq_matrix.shape[0] - n_pos:
+                    neg_freqs = neg_freqs[:freq_matrix.shape[0] - n_pos]
+                freq_matrix[n_pos:n_pos+len(neg_freqs), :] = neg_freqs[:, None]
+
+            # Flatten and compute log frequency
+            frequency = freq_matrix.flatten()
+            log_frequency = np.log10(frequency + 1e-10)  # Add small value to avoid log(0)
+
+            # Filter out low-frequency components (below 20 Hz for better visualization)
+            mask = frequency > 20
             alpha_plot = alpha[mask]
             delta_plot = delta[mask]
-            freq_log_plot = freq_log[mask]
+            log_freq_plot = log_frequency[mask]
 
             # Plot with color based on log frequency
-            scatter = ax.scatter(delta_plot, alpha_plot, c=freq_log_plot,
-                               s=2, alpha=0.7, cmap='viridis',
-                               edgecolors='none')
+            scatter = ax.scatter(delta_plot, alpha_plot, c=log_freq_plot,
+                                 s=2, alpha=0.7, cmap='viridis',
+                                 edgecolors='none')
 
             # Add colorbar
             cbar = plt.colorbar(scatter, ax=ax)
-            cbar.set_label('Log Frequency (log₁₀ Hz)')
-            ax.set_title('Gabor Atoms in Attenuation-Delay Space (Colored by Log Frequency)')
-        else:
-            raise ValueError(f"Invalid coloring option: {coloring}")
+            cbar.set_label('Log₁₀ Frequency (Hz)')
+
+            # Create custom colorbar ticks showing actual frequencies
+            freq_ticks = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+            # Filter ticks to valid range
+            max_freq = self.fs / 2
+            freq_ticks = [f for f in freq_ticks if f <= max_freq]
+            log_freq_ticks = [np.log10(f) for f in freq_ticks]
+
+            # Set colorbar ticks
+            cbar.set_ticks(log_freq_ticks)
+            cbar.set_ticklabels([f'{f} Hz' for f in freq_ticks])
+
+            ax.set_title('Gabor Atoms Colored by Log Frequency')
 
         # Show detected peaks if requested
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
@@ -1186,8 +1210,8 @@ if __name__ == "__main__":
     # Plot sources with magnitude as lightness (best for seeing sources)
     duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
-    # Plot the Gabor atoms scatter plot colored by frequency
-    duet.plot_atn_delay_scatter(coloring='frequency')
+    # Plot colored by log frequency
+    duet.plot_atn_delay_scatter(coloring='log_frequency')
 
     # Plot the attenuation-delay histogram
     # duet.plot_atn_delay_hist()
