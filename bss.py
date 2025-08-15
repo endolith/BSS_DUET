@@ -1097,8 +1097,8 @@ if __name__ == "__main__":
     x = x.astype(np.float64) / np.iinfo(x.dtype).max
     duet = Duet(x[:100000], n_sources=2, sample_rate=fs, attenuation_max=1.5,
                 delay_max=25,  # microphones 7 inches apart = 23 samples
-                # assignment_mode="ml",
-                assignment_mode="radius", delta_radius=10, alpha_radius=0.3,
+                assignment_mode="ml",
+                # assignment_mode="radius", delta_radius=10, alpha_radius=0.3,
                 # (δ_peaks, α_peaks)
                 manual_peaks=([-1.53061224,  -1], [0.26470588, 0.9]),
                 )
