@@ -11,7 +11,6 @@ import numpy as np
 import scipy as sp
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.gridspec import GridSpec
-from matplotlib.patches import Rectangle
 from scipy.signal import convolve2d, find_peaks
 
 from find_peaks import find_peak_indices
@@ -927,6 +926,9 @@ class Duet(object):
             if self.bestind is None:
                 raise RuntimeError("Source classification should be computed first (run the algorithm).")
 
+            # Define alpha range constants
+            ALPHA_MIN = 0.1  # Minimum alpha (most transparent)
+
             # Get magnitude and classification
             mag1 = np.abs(self.tf1).flatten()
             mag2 = np.abs(self.tf2).flatten()
@@ -952,17 +954,17 @@ class Duet(object):
                         mag_norm = (source_mag - source_mag.min()) / (source_mag.max() - source_mag.min() + 1e-10)
                         # Use default color with varying alpha based on magnitude
                         scatter = ax.scatter(delta_plot[source_mask], alpha_plot[source_mask],
-                                   s=2, alpha=0.3 + 0.7*mag_norm, label=f'Source {i+1}')
+                                   s=2, alpha=ALPHA_MIN + (1.0 - ALPHA_MIN)*mag_norm, label=f'Source {i+1}')
                         scatter_objects.append(scatter)
 
             # Create a colorbar showing the alpha (magnitude) scale
             if scatter_objects:
                 # Create a custom colorbar showing alpha values
-                from matplotlib.patches import Rectangle
-                from matplotlib.colors import LinearSegmentedColormap
+
 
                 # Create a custom colormap that shows transparency levels
-                colors = [(0, 0, 0, 0.3), (0, 0, 0, 1.0)]  # From transparent to opaque
+                # From transparent to opaque
+                colors = [(0, 0, 0, ALPHA_MIN), (0, 0, 0, 1.0)]
                 alpha_cmap = LinearSegmentedColormap.from_list('alpha', colors, N=256)
 
                 # Create a dummy scatter for the colorbar
