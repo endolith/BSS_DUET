@@ -225,7 +225,7 @@ class Duet(object):
     >>> duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
     # Plot colored by log frequency
-    >>> duet.plot_atn_delay_scatter(coloring='log_frequency')
+    >>> duet.plot_atn_delay_scatter(coloring='frequency')
 
     # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
@@ -865,7 +865,7 @@ class Duet(object):
         coloring : str, optional
             Coloring scheme: 'magnitude' (dB magnitude), 'classification' (by source),
             'magnitude_by_source' (source colors with magnitude as lightness),
-            or 'log_frequency' (log10 frequency)
+            or 'frequency' (log10 frequency)
         show_peaks : bool, optional
             Whether to show detected peaks as red X markers
         """
@@ -989,7 +989,7 @@ class Duet(object):
             ax.legend(loc='upper right')
             ax.set_title('Sources with Magnitude as Lightness')
 
-        elif coloring == 'log_frequency':
+        elif coloring == 'frequency':
             # Create frequency values for each time-frequency point
             # For two-sided spectrum, we only use positive frequencies for display
             n_pos = self._nfft // 2  # Number of positive frequency bins (excluding DC)
@@ -1211,7 +1211,7 @@ if __name__ == "__main__":
     duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
     # Plot colored by log frequency
-    duet.plot_atn_delay_scatter(coloring='log_frequency')
+    duet.plot_atn_delay_scatter(coloring='frequency')
 
     # Plot the attenuation-delay histogram
     # duet.plot_atn_delay_hist()
