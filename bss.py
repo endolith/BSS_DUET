@@ -928,7 +928,8 @@ class Duet(object):
 
             # Define constants
             ALPHA_MIN = 0.1  # Minimum alpha (most transparent)
-            MAGNITUDE_THRESHOLD_DB = -40  # Minimum magnitude threshold in dB
+            # Minimum magnitude threshold in dB
+            MAGNITUDE_THRESHOLD_DB = -20
 
             # Get magnitude and classification
             mag1 = np.abs(self.tf1).flatten()
