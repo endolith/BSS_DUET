@@ -184,6 +184,12 @@ class Duet(object):
     delta_radius : float, optional
         Radius for delta (delay) axis when using 'radius' assignment mode.
         Default is 0.1 * delay_max.
+    manual_peaks : tuple, optional
+        If provided, use manually specified peaks instead of automatic peak finding.
+        Should be a tuple of (sym_atn_peaks, delay_peaks) where each is an array
+        of length n_sources. This disables automatic peak finding.
+        Note: sym_atn_peaks should be in range [-attenuation_max, +attenuation_max]
+        and delay_peaks should be in range [-delay_max, +delay_max] (in samples).
 
     Examples
     --------
@@ -218,6 +224,14 @@ class Duet(object):
 
     # Plot the attenuation-delay histogram
     >>> duet.plot_atn_delay_hist()
+
+    # Example with manual peaks:
+    >>> # Define manual peaks: (sym_atn_peaks, delay_peaks)
+    >>> manual_sym_atn = np.array([0.2, -0.1, 0.3, -0.2, 0.1])
+    >>> manual_delay = np.array([1.5, -0.8, 2.1, -1.2, 0.5])
+    >>> duet_manual = Duet(x, n_sources=5, sample_rate=fs,
+    ...                    manual_peaks=(manual_sym_atn, manual_delay))
+    >>> estimates_manual = duet_manual()
     """
 
     def __init__(
@@ -235,6 +249,7 @@ class Duet(object):
         assignment_mode='ml',
         alpha_radius=None,
         delta_radius=None,
+        manual_peaks=None,
     ):
         self.x = x
         self.n_sources = n_sources
@@ -254,6 +269,18 @@ class Duet(object):
         if assignment_mode not in ('ml', 'nearest', 'radius'):
             raise ValueError("assignment_mode must be one of {'ml', 'nearest', 'radius'}")
         self.assignment_mode = assignment_mode
+
+        # Handle manual peaks if provided
+        if manual_peaks is not None:
+            if not isinstance(manual_peaks, tuple) or len(manual_peaks) != 2:
+                raise ValueError("manual_peaks must be a tuple of (sym_atn_peaks, delay_peaks)")
+            sym_atn_peaks, delay_peaks = manual_peaks
+            if len(sym_atn_peaks) != n_sources or len(delay_peaks) != n_sources:
+                raise ValueError(f"manual_peaks must contain exactly {n_sources} peaks")
+            self.manual_peaks = manual_peaks
+        else:
+            self.manual_peaks = None
+
         # Default radii as a fraction of configured bounds if not provided
         self.alpha_radius = (
             0.1 * self.attenuation_max if alpha_radius is None else float(alpha_radius)
@@ -305,9 +332,14 @@ class Duet(object):
             self.symmetric_atn, self.delay)
 
         # Find the location of peaks in the attenuation-delay plane
-        self.sym_atn_peak, self.delay_peak = self._find_n_peaks(
-            self.norm_atn_delay_hist, n_peaks=self.n_sources, width=None,
-            prominence=0.2)
+        if self.manual_peaks is not None:
+            # Use manually specified peaks
+            self.sym_atn_peak, self.delay_peak = self.manual_peaks
+        else:
+            # Use automatic peak finding
+            self.sym_atn_peak, self.delay_peak = self._find_n_peaks(
+                self.norm_atn_delay_hist, n_peaks=self.n_sources, width=None,
+                prominence=0.2)
 
         # Assign each time-frequency frame to the nearest peak in phase/amplitude
         # space. This partitions the spectrogram into sources (one peak per source)
