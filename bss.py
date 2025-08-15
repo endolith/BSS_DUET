@@ -926,8 +926,9 @@ class Duet(object):
             if self.bestind is None:
                 raise RuntimeError("Source classification should be computed first (run the algorithm).")
 
-            # Define alpha range constants
+            # Define constants
             ALPHA_MIN = 0.1  # Minimum alpha (most transparent)
+            MAGNITUDE_THRESHOLD_DB = -40  # Minimum magnitude threshold in dB
 
             # Get magnitude and classification
             mag1 = np.abs(self.tf1).flatten()
@@ -937,7 +938,7 @@ class Duet(object):
             classification = self.bestind.flatten()
 
             # Filter out unclassified points and low magnitude
-            mask = (classification > 0) & (magnitude_db > -40)
+            mask = (classification > 0) & (magnitude_db > MAGNITUDE_THRESHOLD_DB)
             alpha_plot = alpha[mask]
             delta_plot = delta[mask]
             classification_plot = classification[mask]
@@ -959,20 +960,24 @@ class Duet(object):
 
             # Create a colorbar showing the alpha (magnitude) scale
             if scatter_objects:
-                # Create a custom colorbar showing alpha values
-
-
                 # Create a custom colormap that shows transparency levels
                 # From transparent to opaque
                 colors = [(0, 0, 0, ALPHA_MIN), (0, 0, 0, 1.0)]
                 alpha_cmap = LinearSegmentedColormap.from_list('alpha', colors, N=256)
 
-                # Create a dummy scatter for the colorbar
-                dummy_scatter = ax.scatter([], [], c=[], cmap=alpha_cmap, vmin=-40, vmax=0)
+                # Create a dummy scatter custom colorbar showing alpha values
+                dummy_scatter = ax.scatter([], [], c=[], cmap=alpha_cmap, vmin=MAGNITUDE_THRESHOLD_DB, vmax=0)
                 cbar = plt.colorbar(dummy_scatter, ax=ax)
                 cbar.set_label('Magnitude (dB) → Alpha')
-                cbar.set_ticks([-40, -30, -20, -10, 0])
-                cbar.set_ticklabels(['-40 dB', '-30 dB', '-20 dB', '-10 dB', '0 dB'])
+
+                # Calculate ticks based on actual magnitude range
+                mag_range = 0 - MAGNITUDE_THRESHOLD_DB
+                num_ticks = 5
+                tick_values = np.linspace(MAGNITUDE_THRESHOLD_DB, 0, num_ticks)
+                tick_labels = [f'{tick:.0f} dB' for tick in tick_values]
+
+                cbar.set_ticks(tick_values)
+                cbar.set_ticklabels(tick_labels)
                 # Remove the dummy scatter
                 dummy_scatter.remove()
 
