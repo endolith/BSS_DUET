@@ -1093,6 +1093,7 @@ if __name__ == "__main__":
                 delay_max=25,  # microphones 7 inches apart = 23 samples
                 # assignment_mode="nearest",
                 assignment_mode="radius", delta_radius=5, alpha_radius=0.5,
+                manual_peaks=(np.array([0.2, -0.1]), np.array([1.5, -0.8])),  # (α_peaks, δ_peaks)
                 )
 
     estimates = duet()
