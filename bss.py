@@ -224,7 +224,7 @@ class Duet(object):
     # Plot sources with magnitude as lightness (best for seeing sources)
     >>> duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
-    # Plot colored by log frequency
+    # Plot colored by frequency
     >>> duet.plot_atn_delay_scatter(coloring='frequency')
 
     # Plot the attenuation-delay histogram
@@ -1012,15 +1012,15 @@ class Duet(object):
                     neg_freqs = neg_freqs[:freq_matrix.shape[0] - n_pos]
                 freq_matrix[n_pos:n_pos+len(neg_freqs), :] = neg_freqs[:, None]
 
-            # Flatten and compute log frequency
+                        # Flatten and compute log frequency
             frequency = freq_matrix.flatten()
             log_frequency = np.log10(frequency + 1e-10)  # Add small value to avoid log(0)
 
             # Filter out low-frequency components (below 20 Hz for better visualization)
             mask = frequency > 20
-            alpha_plot = alpha[mask]
-            delta_plot = delta[mask]
-            log_freq_plot = log_frequency[mask]
+            alpha_plot = alpha[mask].real  # Ensure real values
+            delta_plot = delta[mask].real  # Ensure real values
+            log_freq_plot = log_frequency[mask].real  # Ensure real values
 
             # Plot with color based on log frequency
             scatter = ax.scatter(delta_plot, alpha_plot, c=log_freq_plot,
@@ -1210,7 +1210,7 @@ if __name__ == "__main__":
     # Plot sources with magnitude as lightness (best for seeing sources)
     duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
-    # Plot colored by log frequency
+    # Plot colored by frequency
     duet.plot_atn_delay_scatter(coloring='frequency')
 
     # Plot the attenuation-delay histogram
