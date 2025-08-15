@@ -891,7 +891,7 @@ class Duet(object):
             # Plot with color based on magnitude
             # Delay should be horizontal (x), symmetric attenuation vertical (y)
             scatter = ax.scatter(delta_plot, alpha_plot, c=magnitude_db_plot,
-                                 s=2, alpha=0.7, cmap='viridis',
+                                 s=2, alpha=0.7, cmap='magma',
                                  edgecolors='none', vmin=-40, vmax=0)
 
             # Add colorbar
@@ -1124,15 +1124,15 @@ if __name__ == "__main__":
                 #   delta_radius=0.5, alpha_radius=0.5,
                 )
 
-    fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
-    x = x.astype(np.float64) / np.iinfo(x.dtype).max
-    duet = Duet(x[:100000], n_sources=2, sample_rate=fs, attenuation_max=1.5,
-                delay_max=25,  # microphones 7 inches apart = 23 samples
-                assignment_mode="ml",
-                # assignment_mode="radius", delta_radius=10, alpha_radius=0.3,
-                # (δ_peaks, α_peaks)
-                manual_peaks=([-1.53061224,  -1], [0.26470588, 0.9]),
-                )
+    # fs, x = sp.io.wavfile.read(r"family reunion screaming kid.wav")
+    # x = x.astype(np.float64) / np.iinfo(x.dtype).max
+    # duet = Duet(x[:100000], n_sources=2, sample_rate=fs, attenuation_max=1.5,
+    #             delay_max=25,  # microphones 7 inches apart = 23 samples
+    #             assignment_mode="ml",
+    #             # assignment_mode="radius", delta_radius=10, alpha_radius=0.3,
+    #             # (δ_peaks, α_peaks)
+    #             manual_peaks=([-1.53061224,  -1], [0.26470588, 0.9]),
+    #             )
 
     estimates = duet()
     for i in range(duet.n_sources):
@@ -1143,10 +1143,10 @@ if __name__ == "__main__":
     # duet.plot_spectrograms(freq_scale="linear")
 
     # Plot the Gabor atoms scatter plot
-    # duet.plot_atn_delay_scatter(coloring='magnitude')
+    duet.plot_atn_delay_scatter(coloring='magnitude')
 
     # Plot the source classification
-    # duet.plot_atn_delay_scatter(coloring='classification')
+    duet.plot_atn_delay_scatter(coloring='classification')
 
     # Plot sources with magnitude as lightness (best for seeing sources)
     duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
