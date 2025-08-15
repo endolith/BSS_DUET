@@ -224,7 +224,7 @@ class Duet(object):
     # Plot sources with magnitude as lightness (best for seeing sources)
     >>> duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
-    # Plot colored by log frequency
+    # Plot colored by (log) frequency
     >>> duet.plot_atn_delay_scatter(coloring='frequency')
 
     # Plot the attenuation-delay histogram
@@ -1045,7 +1045,7 @@ class Duet(object):
             cbar.set_ticks(log_freq_ticks)
             cbar.set_ticklabels([f'{f} Hz' for f in freq_ticks])
 
-            ax.set_title('Gabor Atoms Colored by Log Frequency')
+            ax.set_title('Gabor Atoms Colored by Frequency')
 
         # Show detected peaks if requested
         if show_peaks and hasattr(self, 'sym_atn_peak') and hasattr(self, 'delay_peak'):
@@ -1213,7 +1213,7 @@ if __name__ == "__main__":
     # Plot sources with magnitude as lightness (best for seeing sources)
     duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
 
-    # Plot colored by log frequency
+    # Plot colored by frequency
     duet.plot_atn_delay_scatter(coloring='frequency')
 
     # Plot the attenuation-delay histogram
