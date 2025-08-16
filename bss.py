@@ -778,7 +778,8 @@ class Duet(object):
             Default is 'log'.
         """
         if self.tf1 is None or self.tf2 is None:
-            raise RuntimeError("Spectrograms should be computed first (run the algorithm).")
+            raise RuntimeError("Spectrograms should be computed first "
+                               "(run the algorithm).")
 
         # Create time and frequency axes
         time_axis = np.arange(self.tf1.shape[1]) * self._hop_length / self.fs
@@ -793,7 +794,8 @@ class Duet(object):
                                        sharey=True)
 
         # Normalize to full scale and convert to dBFS (use only positive frequencies for display)
-        max_val = max(np.max(np.abs(self.tf1[:n_pos])), np.max(np.abs(self.tf2[:n_pos])))
+        max_val = max(np.max(np.abs(self.tf1[:n_pos])),
+                      np.max(np.abs(self.tf2[:n_pos])))
         mag1_db = 20 * np.log10(np.abs(self.tf1[:n_pos]) / max_val + 1e-10)
         mag2_db = 20 * np.log10(np.abs(self.tf2[:n_pos]) / max_val + 1e-10)
 
@@ -1202,7 +1204,7 @@ if __name__ == "__main__":
                             estimates[i, :]+0.05*duet.x1)
 
     # Plot the input spectrograms
-    # duet.plot_spectrograms(freq_scale="linear")
+    duet.plot_spectrograms(freq_scale="linear")
 
     # Plot the Gabor atoms scatter plot
     duet.plot_atn_delay_scatter(coloring='magnitude')
