@@ -779,7 +779,7 @@ class Duet(object):
         """
         if self.tf1 is None or self.tf2 is None:
             raise RuntimeError("Spectrograms should be computed first "
-                               "(run the algorithm).")
+                               "(call the DUET instance to run the algorithm).")
 
         # Create time and frequency axes
         time_axis = np.arange(self.tf1.shape[1]) * self._hop_length / self.fs
