@@ -784,18 +784,22 @@ class Duet(object):
         # Create time and frequency axes
         time_axis = np.arange(self.tf1.shape[1]) * self._hop_length / self.fs
 
-        # Since we removed DC and are working with positive frequencies only,
-        # use rfftfreq which gives frequencies for one-sided spectrum
-        freq_axis = np.fft.rfftfreq(self._nfft, 1/self.fs)[1:]  # Skip DC
+        # Convert to one-sided spectrum for plotting (positive frequencies only)
+        n_pos = self._nfft // 2  # Number of positive frequency bins
+        tf1_pos = self.tf1[:n_pos, :]  # Take only positive frequencies
+        tf2_pos = self.tf2[:n_pos, :]  # Take only positive frequencies
+
+        # Use rfftfreq for one-sided frequency axis
+        freq_axis = np.fft.rfftfreq(self._nfft, 1/self.fs)[1:n_pos+1]  # Skip DC, take positive freqs
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True,
                                        sharey=True)
 
         # Normalize to full scale and convert to dBFS
-        max_val = max(np.max(np.abs(self.tf1)),
-                      np.max(np.abs(self.tf2)))
-        mag1_db = 20 * np.log10(np.abs(self.tf1) / max_val + 1e-10)
-        mag2_db = 20 * np.log10(np.abs(self.tf2) / max_val + 1e-10)
+        max_val = max(np.max(np.abs(tf1_pos)),
+                      np.max(np.abs(tf2_pos)))
+        mag1_db = 20 * np.log10(np.abs(tf1_pos) / max_val + 1e-10)
+        mag2_db = 20 * np.log10(np.abs(tf2_pos) / max_val + 1e-10)
 
         # Plot first channel spectrogram
         im1 = ax1.imshow(mag1_db, aspect='auto', origin='lower',
