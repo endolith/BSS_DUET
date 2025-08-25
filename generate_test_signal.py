@@ -65,11 +65,11 @@ def create_test_signal(duration=4.0, sample_rate=16000, save_path="test_signal.w
 
     print(f"Generating test signal: {duration}s at {sample_rate}Hz")
 
-    # Source 1: Low frequency chirp (0-1s, 200-800 Hz)
+    # Source 1: Low frequency chirp (0-3s, 200-800 Hz)
     # Delta ≈ 5 samples, Alpha ≈ 0.7
-    mask1 = (t >= 0) & (t <= 1)
+    mask1 = (t >= 0) & (t <= 3)
     chirp1 = np.zeros_like(t)
-    chirp1[mask1] = 0.8 * generate_chirp(t[mask1], 200, 800)
+    chirp1[mask1] = 0.6 * generate_chirp(t[mask1], 200, 800)
 
     left1, right1 = apply_delay_attenuation(
         np.zeros_like(chirp1), chirp1,
@@ -77,13 +77,13 @@ def create_test_signal(duration=4.0, sample_rate=16000, save_path="test_signal.w
     )
     total_left += left1
     total_right += right1
-    print("  Added chirp 1: 200-800 Hz, 0-1s, δ=5, α=0.7")
+    print("  Added chirp 1: 200-800 Hz, 0-3s, δ=5, α=0.7")
 
-    # Source 2: High frequency chirp (1-2s, 1000-2000 Hz)
+    # Source 2: High frequency chirp (1-4s, 1000-2000 Hz)
     # Delta ≈ -3 samples, Alpha ≈ 1.2
-    mask2 = (t >= 1) & (t <= 2)
+    mask2 = (t >= 1) & (t <= 4)
     chirp2 = np.zeros_like(t)
-    chirp2[mask2] = 0.6 * generate_chirp(t[mask2], 1000, 2000)
+    chirp2[mask2] = 0.5 * generate_chirp(t[mask2], 1000, 2000)
 
     left2, right2 = apply_delay_attenuation(
         np.zeros_like(chirp2), chirp2,
@@ -91,13 +91,13 @@ def create_test_signal(duration=4.0, sample_rate=16000, save_path="test_signal.w
     )
     total_left += left2
     total_right += right2
-    print("  Added chirp 2: 1000-2000 Hz, 1-2s, δ=-3, α=1.2")
+    print("  Added chirp 2: 1000-2000 Hz, 1-4s, δ=-3, α=1.2")
 
-    # Source 3: Mid frequency tone (2-3s, 600 Hz)
+    # Source 3: Mid frequency tone (0.5-3.5s, 600 Hz)
     # Delta ≈ 8 samples, Alpha ≈ 0.5
-    mask3 = (t >= 2) & (t <= 3)
+    mask3 = (t >= 0.5) & (t <= 3.5)
     tone1 = np.zeros_like(t)
-    tone1[mask3] = 0.7 * generate_tone(t[mask3], 600)
+    tone1[mask3] = 0.4 * generate_tone(t[mask3], 600)
 
     left3, right3 = apply_delay_attenuation(
         np.zeros_like(tone1), tone1,
@@ -105,13 +105,13 @@ def create_test_signal(duration=4.0, sample_rate=16000, save_path="test_signal.w
     )
     total_left += left3
     total_right += right3
-    print("  Added tone 1: 600 Hz, 2-3s, δ=8, α=0.5")
+    print("  Added tone 1: 600 Hz, 0.5-3.5s, δ=8, α=0.5")
 
-    # Source 4: High frequency tone (3-4s, 1500 Hz)
+    # Source 4: High frequency tone (2-4s, 1500 Hz)
     # Delta ≈ -6 samples, Alpha ≈ 0.9
-    mask4 = (t >= 3) & (t <= 4)
+    mask4 = (t >= 2) & (t <= 4)
     tone2 = np.zeros_like(t)
-    tone2[mask4] = 0.5 * generate_tone(t[mask4], 1500)
+    tone2[mask4] = 0.3 * generate_tone(t[mask4], 1500)
 
     left4, right4 = apply_delay_attenuation(
         np.zeros_like(tone2), tone2,
@@ -119,7 +119,7 @@ def create_test_signal(duration=4.0, sample_rate=16000, save_path="test_signal.w
     )
     total_left += left4
     total_right += right4
-    print("  Added tone 2: 1500 Hz, 3-4s, δ=-6, α=0.9")
+    print("  Added tone 2: 1500 Hz, 2-4s, δ=-6, α=0.9")
 
     # Normalize to prevent clipping
     max_val = max(np.max(np.abs(total_left)), np.max(np.abs(total_right)))
@@ -153,8 +153,12 @@ if __name__ == "__main__":
     print(f"  Duration: {signal_data.shape[0] / fs:.1f} seconds")
     print(f"  Sample rate: {fs} Hz")
     print(f"  Max amplitude: {np.max(np.abs(signal_data)):.3f}")
-    print(f"\nThis signal contains 4 sources with different δ,α parameters:")
-    print(f"  - Source 1: δ=5, α=0.7 (chirp 200-800Hz, 0-1s)")
-    print(f"  - Source 2: δ=-3, α=1.2 (chirp 1000-2000Hz, 1-2s)")
-    print(f"  - Source 3: δ=8, α=0.5 (tone 600Hz, 2-3s)")
-    print(f"  - Source 4: δ=-6, α=0.9 (tone 1500Hz, 3-4s)")
+    print(f"\nThis signal contains 4 overlapping sources with different δ,α parameters:")
+    print(f"  - Source 1: δ=5, α=0.7 (chirp 200-800Hz, 0-3s)")
+    print(f"  - Source 2: δ=-3, α=1.2 (chirp 1000-2000Hz, 1-4s)")
+    print(f"  - Source 3: δ=8, α=0.5 (tone 600Hz, 0.5-3.5s)")
+    print(f"  - Source 4: δ=-6, α=0.9 (tone 1500Hz, 2-4s)")
+    print(f"\nOverlap periods:")
+    print(f"  - 1.0-2.0s: Sources 1,2,3 overlap")
+    print(f"  - 2.0-3.0s: All 4 sources overlap")
+    print(f"  - 3.0-3.5s: Sources 2,3,4 overlap")
