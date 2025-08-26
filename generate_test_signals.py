@@ -164,20 +164,23 @@ def setup_room_and_simulate(signals, fs=16000, anechoic=True):
 
     room.add_microphone_array(mic_positions)
 
-        # Source positions - arranged in a pentagon around the microphone pair
-    # Microphones are at [2.0, 1.5, 1.2] (center of room)
-    mic_center = [room_dim[0]/2, room_dim[1]/2, mic_height]
+        # Source positions - pentagon arrangement in front of microphones
+    # All sources on one side of mics, coplanar (same height)
+    mic_center_x = room_dim[0]/2  # Center of microphone array
+    mic_center_y = room_dim[1]/2  # Center of microphone array
 
-    # Create pentagon with radius ~1.5m around microphone center
+    # Create pentagon with radius 1.5m, centered 2m in front of mics
+    pentagon_center_x = mic_center_x
+    pentagon_center_y = mic_center_y + 2.0  # 2m in front of mics
     pentagon_radius = 1.5
-    pentagon_angles = np.linspace(0, 2*np.pi, 6)[:-1]  # 5 angles, 0 to 2π
 
+    # Calculate pentagon vertices (5 points evenly spaced)
+    angles = np.linspace(0, 2*np.pi, 6)[:-1]  # 0, 72, 144, 216, 288 degrees
     source_positions = []
-    for i, angle in enumerate(pentagon_angles):
-        # Position sources in a circle around the microphones
-        x = mic_center[0] + pentagon_radius * np.cos(angle)
-        y = mic_center[1] + pentagon_radius * np.sin(angle)
-        z = mic_center[2]  # Same height as microphones (coplanar)
+    for angle in angles:
+        x = pentagon_center_x + pentagon_radius * np.cos(angle)
+        y = pentagon_center_y + pentagon_radius * np.sin(angle)
+        z = mic_height  # Same height as microphones
         source_positions.append([x, y, z])
 
     # Add sources to room
@@ -191,7 +194,7 @@ def setup_room_and_simulate(signals, fs=16000, anechoic=True):
     # Get the recorded signals at both microphones
     mic_signals = room.mic_array.signals  # Shape: (n_mics, n_samples)
 
-    return mic_signals, room
+    return mic_signals, room, source_positions, mic_positions
 
 
 def save_signals(signals, mic_signals, fs, output_dir="./"):
@@ -313,7 +316,8 @@ def main():
 
     # Print some info about expected delta-alpha distribution
     print(f"\nExpected characteristics:")
-    print(f"- {len(signals)} sources arranged in pentagon around microphones")
+    print(f"- {len(signals)} sources in pentagon arrangement")
+    print(f"- Sources positioned 2m in front of microphones")
     print(f"- Microphone separation: 0.02m (2cm, ~0.8 inches)")
     if anechoic:
         print(f"- Environment: Anechoic (free field, no reflections)")
