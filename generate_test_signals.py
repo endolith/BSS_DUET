@@ -164,14 +164,21 @@ def setup_room_and_simulate(signals, fs=16000, anechoic=True):
 
     room.add_microphone_array(mic_positions)
 
-    # Source positions - spread around the room to create different delays/attenuations
-    source_positions = [
-        [1.0, 1.0, 1.5],    # Front-left
-        [3.0, 1.0, 1.5],    # Front-right
-        [2.0, 0.5, 1.5],    # Front-center
-        [1.5, 2.5, 1.5],    # Back-left
-        [2.5, 2.5, 1.5],    # Back-right
-    ]
+        # Source positions - arranged in a pentagon around the microphone pair
+    # Microphones are at [2.0, 1.5, 1.2] (center of room)
+    mic_center = [room_dim[0]/2, room_dim[1]/2, mic_height]
+
+    # Create pentagon with radius ~1.5m around microphone center
+    pentagon_radius = 1.5
+    pentagon_angles = np.linspace(0, 2*np.pi, 6)[:-1]  # 5 angles, 0 to 2π
+
+    source_positions = []
+    for i, angle in enumerate(pentagon_angles):
+        # Position sources in a circle around the microphones
+        x = mic_center[0] + pentagon_radius * np.cos(angle)
+        y = mic_center[1] + pentagon_radius * np.sin(angle)
+        z = mic_center[2]  # Same height as microphones (coplanar)
+        source_positions.append([x, y, z])
 
     # Add sources to room
     for i, (signal_data, pos) in enumerate(zip(signals, source_positions)):
@@ -306,7 +313,7 @@ def main():
 
     # Print some info about expected delta-alpha distribution
     print(f"\nExpected characteristics:")
-    print(f"- {len(signals)} sources at different positions")
+    print(f"- {len(signals)} sources arranged in pentagon around microphones")
     print(f"- Microphone separation: 0.02m (2cm, ~0.8 inches)")
     if anechoic:
         print(f"- Environment: Anechoic (free field, no reflections)")
