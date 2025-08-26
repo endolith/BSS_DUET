@@ -502,7 +502,15 @@ class Duet(object):
         ).toarray()
 
         # smooth the histogram - local average 3-by-3 neighboring bins
-        A = twoDsmooth(A, 3)
+        # A = twoDsmooth(A, 3)
+
+        # smooth the histogram - 5x5 gaussian kernel
+        gaussian_kernel = np.outer(
+            sp.signal.windows.gaussian(5, std=1),
+            sp.signal.windows.gaussian(5, std=1)
+        )
+        gaussian_kernel /= np.sum(gaussian_kernel)
+        A = twoDsmooth(A, gaussian_kernel)
 
         return A, tf_weight
 
