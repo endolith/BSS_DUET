@@ -127,16 +127,32 @@ def create_test_signals(duration=4.0, fs=16000):
     return signals
 
 
-def setup_room_and_simulate(signals, fs=16000):
+def setup_room_and_simulate(signals, fs=16000, anechoic=True):
     """
     Set up room acoustics simulation with pyroomacoustics.
     Creates realistic delays and attenuations based on source positions.
+
+    Parameters:
+    -----------
+    signals : list
+        List of source signals
+    fs : int
+        Sample rate
+    anechoic : bool
+        If True, create anechoic environment (no walls/reflections)
+        If False, create room with walls and absorption
     """
-    # Room dimensions (in meters)
+    # Room dimensions (in meters) - used for positioning regardless of room type
     room_dim = [4, 3, 2.5]  # width, length, height
 
-    # Create room with some absorption
-    room = pra.ShoeBox(room_dim, fs=fs, absorption=0.2, max_order=3)
+    if anechoic:
+        # Create anechoic environment - no walls, just free field
+        room = pra.AnechoicRoom(fs=fs)
+        print("Using anechoic environment (no walls/reflections)")
+    else:
+        # Create room with walls and absorption
+        room = pra.ShoeBox(room_dim, fs=fs, absorption=0.2, max_order=3)
+        print("Using room with walls and absorption")
 
     # Microphone positions (stereo pair, 0.15m apart)
     mic_distance = 0.15  # 15cm between mics
@@ -248,11 +264,24 @@ def plot_signals_and_spectrogram(signals, mic_signals, fs):
 
 def main():
     """Main function to generate test signals."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Generate synthetic test signals for DUET BSS')
+    parser.add_argument('--room', action='store_true',
+                       help='Enable room acoustics with walls (default: anechoic)')
+    parser.add_argument('--duration', type=float, default=4.0,
+                       help='Duration in seconds (default: 4.0)')
+    parser.add_argument('--fs', type=int, default=16000,
+                       help='Sample rate in Hz (default: 16000)')
+
+    args = parser.parse_args()
+
     print("Generating synthetic test signals for DUET BSS...")
 
     # Parameters
-    duration = 4.0  # seconds
-    fs = 16000  # Hz
+    duration = args.duration  # seconds
+    fs = args.fs  # Hz
+    anechoic = not args.room  # Default to anechoic unless --room flag is used
 
     # Generate individual source signals
     print("\n1. Creating source signals...")
@@ -260,7 +289,7 @@ def main():
 
     # Set up room acoustics and simulate
     print("\n2. Setting up room acoustics simulation...")
-    mic_signals, room = setup_room_and_simulate(signals, fs)
+    mic_signals, room = setup_room_and_simulate(signals, fs, anechoic=anechoic)
 
     # Save all signals
     print("\n3. Saving signals...")
@@ -279,7 +308,11 @@ def main():
     print(f"\nExpected characteristics:")
     print(f"- {len(signals)} sources at different positions")
     print(f"- Microphone separation: 0.15m")
-    print(f"- Room size: 4m x 3m x 2.5m")
+    if anechoic:
+        print(f"- Environment: Anechoic (free field, no reflections)")
+    else:
+        print(f"- Environment: Room with walls and absorption")
+    print(f"- Room dimensions: 4m x 3m x 2.5m")
     print(f"- Sample rate: {fs} Hz")
     print(f"- Duration: {duration} seconds")
 
