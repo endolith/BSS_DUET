@@ -185,8 +185,9 @@ def setup_room_and_simulate(signals, fs=16000, anechoic=True):
 
     # Add sources to room
     for i, (signal_data, pos) in enumerate(zip(signals, source_positions)):
-        room.add_source(pos, signal=signal_data)
-        print(f"Source {i}: position {pos}")
+        if i == 2:
+            room.add_source(pos, signal=signal_data)
+            print(f"Source {i}: position {pos}")
 
     # Simulate acoustics
     room.simulate()
