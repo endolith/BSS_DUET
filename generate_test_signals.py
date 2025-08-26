@@ -118,11 +118,11 @@ def create_test_signals(duration=4.0, fs=16000):
     signal5 = generate_noise_burst(duration, fs, f_low=1500, f_high=2500,
                                    t_start=1.5, burst_duration=1.0)
 
-    # Normalize all signals
+    # Normalize all signals to much lower levels to prevent distortion
     signals = [signal1, signal2, signal3, signal4, signal5]
     for i, sig in enumerate(signals):
         if np.max(np.abs(sig)) > 0:
-            signals[i] = sig / np.max(np.abs(sig)) * 0.8  # Prevent clipping
+            signals[i] = sig / np.max(np.abs(sig)) * 0.3  # Much lower to prevent clipping
 
     return signals
 
@@ -173,6 +173,9 @@ def setup_room_and_simulate(signals, fs=16000):
 
 def save_signals(signals, mic_signals, fs, output_dir="./"):
     """Save individual source signals and mixed stereo output."""
+    import os
+    os.makedirs(output_dir, exist_ok=True)
+
     # Save individual source signals
     for i, signal_data in enumerate(signals):
         filename = f"{output_dir}source_{i:02d}_{get_signal_name(i)}.wav"
@@ -181,8 +184,14 @@ def save_signals(signals, mic_signals, fs, output_dir="./"):
         wavfile.write(filename, fs, signal_int)
         print(f"Saved: {filename}")
 
-    # Save stereo mix
+    # Save stereo mix - normalize to prevent clipping
     stereo_mix = mic_signals.T  # Convert to (n_samples, n_channels)
+
+    # Normalize the mix to prevent clipping
+    max_val = np.max(np.abs(stereo_mix))
+    if max_val > 0:
+        stereo_mix = stereo_mix / max_val * 0.8  # Scale down to 80% of max
+
     stereo_mix_int = (stereo_mix * 32767).astype(np.int16)
     wavfile.write(f"{output_dir}stereo_mix.wav", fs, stereo_mix_int)
     print(f"Saved: {output_dir}stereo_mix.wav")
