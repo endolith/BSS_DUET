@@ -1203,7 +1203,7 @@ if __name__ == "__main__":
     fs, x = sp.io.wavfile.read(r"test_signals/stereo_mix.wav")
     x = x.astype(np.float64) / np.iinfo(x.dtype).max
     duet = Duet(x[:100000], n_sources=5, sample_rate=fs, attenuation_max=2,
-                delay_max=10,  # microphones 7 inches apart = 23 samples
+                delay_max=1,  # microphones 2 cm apart = 0.9 samples
                 assignment_mode="ml",
                 # assignment_mode="radius", delta_radius=10, alpha_radius=0.3,
                 # (δ_peaks, α_peaks)
