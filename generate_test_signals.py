@@ -169,10 +169,10 @@ def setup_room_and_simulate(signals, fs=16000, anechoic=True):
     mic_center_x = room_dim[0]/2  # Center of microphone array
     mic_center_y = room_dim[1]/2  # Center of microphone array
 
-    # Create pentagon with radius 1.5m, centered 2m in front of mics
+    # Create pentagon centered in front of mics
     pentagon_center_x = mic_center_x
-    pentagon_center_y = mic_center_y + 2.0  # 2m in front of mics
-    pentagon_radius = 1.5
+    pentagon_center_y = mic_center_y + 1.0  # distance in front of mics
+    pentagon_radius = 0.5
 
     # Calculate pentagon vertices (5 points evenly spaced)
     angles = np.linspace(0, 2*np.pi, 6)[:-1]  # 0, 72, 144, 216, 288 degrees
