@@ -229,6 +229,56 @@ def get_signal_name(index):
     return names[index] if index < len(names) else f"Signal_{index}"
 
 
+def plot_room_layout(room, source_positions, mic_positions, room_dim):
+    """Plot the room layout showing sources and microphones."""
+    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+
+    # Plot room boundaries
+    ax.add_patch(plt.Rectangle((0, 0), room_dim[0], room_dim[1],
+                              fill=False, edgecolor='black', linewidth=2))
+
+    # Plot microphones
+    mic_x = mic_positions[0, :]
+    mic_y = mic_positions[1, :]
+    ax.scatter(mic_x, mic_y, c='red', s=200, marker='^', label='Microphones', zorder=5)
+
+    # Plot sources
+    source_x = [pos[0] for pos in source_positions]
+    source_y = [pos[1] for pos in source_positions]
+    ax.scatter(source_x, source_y, c='blue', s=150, marker='o', label='Sources', zorder=5)
+
+    # Label sources
+    for i, (x, y) in enumerate(zip(source_x, source_y)):
+        ax.annotate(f'S{i}', (x, y), xytext=(5, 5), textcoords='offset points',
+                   fontsize=12, fontweight='bold')
+
+    # Label microphones
+    for i, (x, y) in enumerate(zip(mic_x, mic_y)):
+        ax.annotate(f'M{i}', (x, y), xytext=(5, -15), textcoords='offset points',
+                   fontsize=12, fontweight='bold')
+
+    # Draw lines from sources to microphones for clarity
+    for i, source_pos in enumerate(source_positions):
+        for j, mic_pos in enumerate(mic_positions):
+            ax.plot([source_pos[0], mic_pos[0]], [source_pos[1], mic_pos[1]],
+                   'k-', alpha=0.2, linewidth=0.5)
+
+    ax.set_xlabel('X (m)')
+    ax.set_ylabel('Y (m)')
+    ax.set_title('Room Layout: Sources and Microphones')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    ax.set_aspect('equal')
+
+    # Set axis limits with some padding
+    ax.set_xlim(-0.5, room_dim[0] + 0.5)
+    ax.set_ylim(-0.5, room_dim[1] + 0.5)
+
+    plt.tight_layout()
+    plt.savefig('room_layout.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
 def plot_signals_and_spectrogram(signals, mic_signals, fs):
     """Create visualizations of the generated signals."""
     fig, axes = plt.subplots(3, 2, figsize=(12, 10))
@@ -292,6 +342,7 @@ def main():
     duration = args.duration  # seconds
     fs = args.fs  # Hz
     anechoic = not args.room  # Default to anechoic unless --room flag is used
+    room_dim = [4, 3, 2.5]  # width, length, height
 
     # Generate individual source signals
     print("\n1. Creating source signals...")
@@ -299,14 +350,17 @@ def main():
 
     # Set up room acoustics and simulate
     print("\n2. Setting up room acoustics simulation...")
-    mic_signals, room = setup_room_and_simulate(signals, fs, anechoic=anechoic)
+    mic_signals, room, source_positions, mic_positions = setup_room_and_simulate(signals, fs, anechoic=anechoic)
 
     # Save all signals
     print("\n3. Saving signals...")
     save_signals(signals, mic_signals, fs, output_dir="test_signals/")
 
     # Create visualizations
-    print("\n4. Creating visualizations...")
+    print("\n4. Creating room layout visualization...")
+    plot_room_layout(room, source_positions, mic_positions, room_dim)
+
+    print("\n5. Creating signal visualizations...")
     plot_signals_and_spectrogram(signals, mic_signals, fs)
 
     print("\nTest signals generated successfully!")
