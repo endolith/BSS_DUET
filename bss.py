@@ -1238,13 +1238,13 @@ if __name__ == "__main__":
     duet.plot_spectrograms(freq_scale="linear")
 
     # Plot the Gabor atoms scatter plot
-    duet.plot_atn_delay_scatter(coloring='magnitude')
-
-    # Plot the source classification
-    duet.plot_atn_delay_scatter(coloring='classification')
+    # duet.plot_atn_delay_scatter(coloring='magnitude')
 
     # Plot sources with magnitude as lightness (best for seeing sources)
     duet.plot_atn_delay_scatter(coloring='magnitude_by_source')
+
+    # Plot the source classification
+    duet.plot_atn_delay_scatter(coloring='classification')
 
     # Plot colored by frequency
     duet.plot_atn_delay_scatter(coloring='frequency')
