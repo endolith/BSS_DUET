@@ -164,7 +164,7 @@ def setup_room_and_simulate(signals, fs=16000, anechoic=True):
 
     room.add_microphone_array(mic_positions)
 
-        # Source positions - pentagon arrangement in front of microphones
+    # Source positions - pentagon arrangement in front of microphones
     # All sources on one side of mics, coplanar (same height)
     mic_center_x = room_dim[0]/2  # Center of microphone array
     mic_center_y = room_dim[1]/2  # Center of microphone array
