@@ -196,11 +196,6 @@ def save_signals(signals, mic_signals, fs, output_dir="./"):
     wavfile.write(f"{output_dir}stereo_mix.wav", fs, stereo_mix_int)
     print(f"Saved: {output_dir}stereo_mix.wav")
 
-    # Also save left and right channels separately for DUET compatibility
-    wavfile.write(f"{output_dir}mix_left.wav", fs, stereo_mix_int[:, 0])
-    wavfile.write(f"{output_dir}mix_right.wav", fs, stereo_mix_int[:, 1])
-    print(f"Saved: {output_dir}mix_left.wav and {output_dir}mix_right.wav")
-
 
 def get_signal_name(index):
     """Get descriptive name for each signal type."""
@@ -279,7 +274,6 @@ def main():
     print("Files saved in test_signals/ directory")
     print("\nTo test with DUET:")
     print("1. Load test_signals/stereo_mix.wav")
-    print("2. Or use test_signals/mix_left.wav and test_signals/mix_right.wav")
 
     # Print some info about expected delta-alpha distribution
     print(f"\nExpected characteristics:")
