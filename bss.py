@@ -1212,6 +1212,17 @@ if __name__ == "__main__":
 
 
     estimates = duet()
+
+    # Debug: print alpha statistics after DUET processing
+    print(f"Alpha statistics:")
+    print(f"  Min: {np.min(duet.symmetric_atn):.4f}")
+    print(f"  Max: {np.max(duet.symmetric_atn):.4f}")
+    print(f"  Mean: {np.mean(duet.symmetric_atn):.4f}")
+    print(f"  Std: {np.std(duet.symmetric_atn):.4f}")
+    print(f"  Attenuation_max: {duet.attenuation_max}")
+    print(f"  Non-zero alpha count: {np.count_nonzero(duet.symmetric_atn)}")
+    print(f"  Alpha shape: {duet.symmetric_atn.shape}")
+    print(f"  Detected peaks: {duet.sym_atn_peak}")
     for i in range(duet.n_sources):
         sp.io.wavfile.write(f"test_outputs/output{i}.wav", duet.fs,
                             estimates[i, :]+0.05*duet.x1)
