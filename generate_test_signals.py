@@ -229,50 +229,50 @@ def get_signal_name(index):
     return names[index] if index < len(names) else f"Signal_{index}"
 
 
-def plot_room_layout(room, source_positions, mic_positions, room_dim):
+def plot_room_layout(room, source_positions, mic_positions, room_dim, anechoic=True):
     """Plot the room layout showing sources and microphones."""
     fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
-    # Plot room boundaries
-    ax.add_patch(plt.Rectangle((0, 0), room_dim[0], room_dim[1],
-                              fill=False, edgecolor='black', linewidth=2))
+    # Plot room boundaries only if not anechoic
+    if not anechoic:
+        ax.add_patch(plt.Rectangle((0, 0), room_dim[0], room_dim[1],
+                                  fill=False, edgecolor='black', linewidth=2))
 
     # Plot microphones
     mic_x = mic_positions[0, :]
     mic_y = mic_positions[1, :]
-    ax.scatter(mic_x, mic_y, c='red', s=200, marker='^', label='Microphones', zorder=5)
+    ax.scatter(mic_x, mic_y, c='red', s=80, marker='^', label='Microphones', zorder=5)
 
     # Plot sources
     source_x = [pos[0] for pos in source_positions]
     source_y = [pos[1] for pos in source_positions]
-    ax.scatter(source_x, source_y, c='blue', s=150, marker='o', label='Sources', zorder=5)
+    ax.scatter(source_x, source_y, c='blue', s=60, marker='o', label='Sources', zorder=5)
 
     # Label sources
     for i, (x, y) in enumerate(zip(source_x, source_y)):
         ax.annotate(f'S{i}', (x, y), xytext=(5, 5), textcoords='offset points',
-                   fontsize=12, fontweight='bold')
+                   fontsize=10, fontweight='bold')
 
     # Label microphones
     for i, (x, y) in enumerate(zip(mic_x, mic_y)):
         ax.annotate(f'M{i}', (x, y), xytext=(5, -15), textcoords='offset points',
-                   fontsize=12, fontweight='bold')
-
-    # Draw lines from sources to microphones for clarity
-    for i, source_pos in enumerate(source_positions):
-        for j, mic_pos in enumerate(mic_positions):
-            ax.plot([source_pos[0], mic_pos[0]], [source_pos[1], mic_pos[1]],
-                   'k-', alpha=0.2, linewidth=0.5)
+                   fontsize=10, fontweight='bold')
 
     ax.set_xlabel('X (m)')
     ax.set_ylabel('Y (m)')
-    ax.set_title('Room Layout: Sources and Microphones')
+    title = 'Anechoic Layout: Sources and Microphones' if anechoic else 'Room Layout: Sources and Microphones'
+    ax.set_title(title)
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.set_aspect('equal')
 
-    # Set axis limits with some padding
-    ax.set_xlim(-0.5, room_dim[0] + 0.5)
-    ax.set_ylim(-0.5, room_dim[1] + 0.5)
+    # Set axis limits with some padding, but ensure sources are visible
+    all_x = source_x + list(mic_x)
+    all_y = source_y + list(mic_y)
+    x_margin = 0.5
+    y_margin = 0.5
+    ax.set_xlim(min(all_x) - x_margin, max(all_x) + y_margin)
+    ax.set_ylim(min(all_y) - y_margin, max(all_y) + y_margin)
 
     plt.tight_layout()
     plt.savefig('room_layout.png', dpi=150, bbox_inches='tight')
@@ -358,7 +358,7 @@ def main():
 
     # Create visualizations
     print("\n4. Creating room layout visualization...")
-    plot_room_layout(room, source_positions, mic_positions, room_dim)
+    plot_room_layout(room, source_positions, mic_positions, room_dim, anechoic=anechoic)
 
     print("\n5. Creating signal visualizations...")
     plot_signals_and_spectrogram(signals, mic_signals, fs)
