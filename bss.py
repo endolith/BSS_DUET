@@ -1213,7 +1213,7 @@ if __name__ == "__main__":
 
     estimates = duet()
     for i in range(duet.n_sources):
-        sp.io.wavfile.write(f"output{i}.wav", duet.fs,
+        sp.io.wavfile.write(f"test_outputs/output{i}.wav", duet.fs,
                             estimates[i, :]+0.05*duet.x1)
 
     # Plot the input spectrograms
