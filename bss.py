@@ -899,7 +899,7 @@ class Duet(object):
             # Plot with color based on magnitude
             # Delay should be horizontal (x), symmetric attenuation vertical (y)
             scatter = ax.scatter(delta_plot, alpha_plot, c=magnitude_db_plot,
-                                 s=2, alpha=0.7, cmap='magma',
+                                 s=2, alpha=0.7, cmap='magma_r',
                                  edgecolors='none', vmin=-40, vmax=0)
 
             # Add colorbar
