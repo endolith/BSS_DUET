@@ -1206,8 +1206,6 @@ if __name__ == "__main__":
                 delay_max=1,  # microphones 2 cm apart = 0.9 samples
                 assignment_mode="ml",
                 # assignment_mode="radius", delta_radius=10, alpha_radius=0.3,
-                # (δ_peaks, α_peaks)
-                # manual_peaks=([-1.53061224,  -1], [0.26470588, 0.9]),
                 )
 
 
