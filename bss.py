@@ -1232,5 +1232,5 @@ if __name__ == "__main__":
     duet.plot_atn_delay_scatter(coloring='frequency')
 
     # Plot the attenuation-delay histogram
-    # duet.plot_atn_delay_hist()
+    duet.plot_atn_delay_hist()
     duet.plot_atn_delay_hist_2d(log_scale=False)
