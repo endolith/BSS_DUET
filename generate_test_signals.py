@@ -154,8 +154,8 @@ def setup_room_and_simulate(signals, fs=16000, anechoic=True):
         room = pra.ShoeBox(room_dim, fs=fs, absorption=0.2, max_order=3)
         print("Using room with walls and absorption")
 
-    # Microphone positions (stereo pair, 0.15m apart)
-    mic_distance = 0.15  # 15cm between mics
+    # Microphone positions (stereo pair, 0.02m apart - avoids phase wrapping at 16kHz
+    mic_distance = 0.02  # 2cm between mics (about 0.8 inches)
     mic_height = 1.2
     mic_positions = np.array([
         [room_dim[0]/2 - mic_distance/2, room_dim[1]/2, mic_height],  # Left mic
@@ -307,7 +307,7 @@ def main():
     # Print some info about expected delta-alpha distribution
     print(f"\nExpected characteristics:")
     print(f"- {len(signals)} sources at different positions")
-    print(f"- Microphone separation: 0.15m")
+    print(f"- Microphone separation: 0.02m (2cm, ~0.8 inches)")
     if anechoic:
         print(f"- Environment: Anechoic (free field, no reflections)")
     else:
