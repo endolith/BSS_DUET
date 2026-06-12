@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
 import sys
-from matplotlib.gridspec import GridSpec
 from pathlib import Path
 from scipy.signal import convolve2d, find_peaks
 from find_peaks import find_peak_indices
@@ -78,8 +77,7 @@ def twoDsmooth(mat, ker):
     try:
         len(ker)
         kmat = ker
-
-    except:
+    except TypeError:
         kmat = np.ones((ker, ker)) / ker**2
 
     kr, kc = kmat.shape
